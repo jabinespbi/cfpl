@@ -1,4 +1,15 @@
-<ul>
-    <li><a href="/polls/{{ question.id }}/">asdfasdfsdfa</a></li>
-</ul>
-<p>No polls are available.</p>
+<form action="/" method="post">
+    {% csrf_token %}
+    <div style="text-align:center">
+        <p>
+            <textarea name="source_code" style="resize: none;" cols="100"
+                      rows="40">{{request.POST.source_code}}</textarea>
+        </p>
+        <p>
+            <button type="submit">Compile</button>
+        </p>
+        <p>
+            {{ error }}
+        </p>
+    </div>
+</form>
