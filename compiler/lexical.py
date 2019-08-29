@@ -52,14 +52,14 @@ class Lexical:
                 self.curr_state = output[0]
             except KeyError:
                 if self.curr_state == 0 or self.curr_state == 2 or self.curr_state == 3:
-                    # 'regex for token'
-                    re
+                    'regex for token'
+
                 elif self.curr_state == 1:
                     'regex for !\n'
                 else:
                     print('Something went wrong!')
 
-    def token_regex(self):
+    def token_regex(self): # returns an array [0, 1], 0 = start inclusive, 1 = end exclusive, which is the start and end of the token in the lexemes
         lex_ptr = 0
         end = lex_ptr + 1
 
