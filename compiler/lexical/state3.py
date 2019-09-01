@@ -1,5 +1,3 @@
-import os
-
 from compiler.lexical.ValidToken import ValidToken
 
 

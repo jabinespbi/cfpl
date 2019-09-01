@@ -1,6 +1,3 @@
-import os
-
-
 class State2:
     """This class follows the state pattern. This is the state part."""
 

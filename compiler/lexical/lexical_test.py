@@ -1,4 +1,3 @@
-import os
 import unittest
 
 from compiler.lexical.lexical import Lexical
