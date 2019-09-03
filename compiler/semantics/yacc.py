@@ -8,7 +8,7 @@ from compiler.utils import Utils
 
 
 class Yacc:
-    """Given rules, this class will create a dictionary which is a parser"""
+    """Given the grammar, this class will create an slr(1) parsing table."""
 
     def __init__(self, grammar, source_code):
         """grammar format: an array of rules
@@ -57,24 +57,38 @@ class Yacc:
         for rule in state.rules:
             print(rule)
 
-        # while the transitions to be expanded queue is not empty
-            # for rule in state.rules
-                # push all the symbol followed by dot to transition_queue with no duplicates
-                # for all the symbol in transition_queue
-                    # create a new state
+        #TODO:
+        # push the state0 to the unexpanded_states_queue
+        # add the state0 to the parser_states
+        # while unexpanded_states_queue is not empty
+        #       for rule in unexpanded_states_queue.get().rules
+        #           transition_queue = new queue
+        #           push all the symbol (NON TERMINAL OR TERMINAL)
+        #           followed by dot to transition_queue with no duplicates
+        #           optional code: if there is a rule with dot in the end, then this state is a reduce state
+        #       for all the symbol in transition_queue
+        #           create a new state
+        #           add all the rules from previous state (state0) where the dot is after the symbol
+        #           process all the non terminal symbols that are followed by the dot
+        #           create a transition from symbol,
+        #           if the new state does not exist in the parser_states
+        #               add the new state to the parser_states
+        #               add the new state to the unexpanded_states_queue
+        #               set the state of the transition to the new state
+        #           else
+        #               set the state of the transition to the existing state
+        #           add the transition to the previous state (state0)
 
-                    # the first rule of the new state is all the
-                    # rules from current state (state0) where the dot is after the symbol
+        # TODO:
+        # create a list of terminal symbols.
+        # after the finite state machine is expanded,
 
-                    # process all the non terminal symbol for the new state
+        # TODO:
+        # after the finite state machine is expanded,
+        # check all reduce states, and add all the list of look-ahead
 
-                    # create a transition from symbol,
-                    # if the new state does not exist in the list of state of the parser
-                        # add the new state to the list of state of the parser
-                        # set the state of the transition to the new state
-                    # else
-                        # set the state of the transition to the existing state
-                        # add the transition to the transitions to be expanded queue
-
-                    # add the transition to the current state (state0)
+        # TODO:
+        # think about how to produce the syntax errors
+        # think about the parse trees
+        # think what are the needed abstract syntax trees
 
