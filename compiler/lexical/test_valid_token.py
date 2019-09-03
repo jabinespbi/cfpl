@@ -1,6 +1,6 @@
 import unittest
 
-from compiler.lexical.ValidToken import ValidToken
+from compiler.lexical.valid_token import ValidToken
 
 
 class MyTestCase(unittest.TestCase):

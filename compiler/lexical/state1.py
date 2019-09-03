@@ -1,4 +1,4 @@
-from compiler.lexical.ValidToken import ValidToken
+from compiler.lexical.valid_token import ValidToken
 
 
 class State1:
