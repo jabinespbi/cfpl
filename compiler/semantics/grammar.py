@@ -5,7 +5,7 @@ class Grammar:
     """The grammar and its rules"""
 
     @staticmethod
-    def find_rule(lhs, grammar):
+    def find_rule_and_deep_copy(lhs, grammar):
         productions = []
         for rule in grammar:
             if rule[0] == lhs:

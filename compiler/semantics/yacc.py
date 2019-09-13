@@ -1,9 +1,9 @@
-import re
 from queue import Queue
 
 from compiler.lexical.lexical import Lexical
 from compiler.semantics.grammar import Grammar
 from compiler.semantics.state import State
+from compiler.semantics.transition import Transition
 from compiler.utils import Utils
 
 
@@ -20,75 +20,92 @@ class Yacc:
             ]
         """
         self.lexical = Lexical(source_code)
+        self.grammar = grammar
 
-        # queue of non terminal symbols
-        queue = Queue()
+    def create_parser(self):
         # create first state
-        state = State()
-        # add rule to the state <CFPL>' -> . <CFPL>$, enqueue "<CFPL>" to rules_queue
-        cfpl_dash = [grammar[0][0] + "'", "->", ".", grammar[0][0]]
-        state.rules.append(cfpl_dash)
-        queue.put(grammar[0][0])
+        state0 = State()
+        # add rule to the state <CFPL>' -> . <CFPL>$
+        dash = [self.grammar[0][0] + "'", "->", ".", self.grammar[0][0]]
+        state0.rules.append(dash)
+        self.add_rules_with_nonterminal_followed_by_dot(state0, self.grammar)
+
+        parser_states = [state0]
+
+        unexpanded_states_queue = Queue()
+        unexpanded_states_queue.put(state0)
+
+        while unexpanded_states_queue.empty() is False:
+            state = unexpanded_states_queue.get()
+            transition_inputs_queue = Queue()
+            map(transition_inputs_queue.put, self.get_transition_inputs(state))
+
+            # while transition_inputs_queue is not empty
+            while transition_inputs_queue.empty() is False:
+                new_state = State()
+                transition_input = transition_inputs_queue.get()
+
+                for rule in state.rules:
+                    symbol = Utils.get_symbol_followed_by_dot(rule)
+                    if symbol == transition_input:
+                        rule_copy = rule.copy()
+
+                        index = rule_copy.index('.')
+                        rule_copy.pop(index)
+                        rule_copy.insert(index + 1, '.')
+
+                        new_state.rules.append(rule_copy)
+
+                self.add_rules_with_nonterminal_followed_by_dot(new_state, self.grammar)
+                transition = Transition()
+
+                # if new_state doesn't exist
+                transition.state = new_state
+                transition.transition_input = transition_input
+
+                state.transitions.append(transition)
+
+        # create a copy of a rule when moving dot rightwards
+        # add that rule to the state
+        # add rules with nonterminal followed by dot
+        # new transition from previous state to this state when input of the symbol
+
+    def add_rules_with_nonterminal_followed_by_dot(self, state, grammar):
+        """given state with initial rules, add rules to the state for all the current rules
+        that has a production of dot followed by a non terminal"""
+        # list of non terminal symbols
+        unprocessed_rules = Queue()
+        for rule in state.rules:
+            unprocessed_rules.put(rule)
 
         # for every non terminal symbol in queue,
-        while queue.empty() is False:
-            non_terminal = queue.get()
+        while unprocessed_rules.empty() is False:
+            rule = unprocessed_rules.get()
 
-            # get all the productions of that non_terminal
-            productions = Grammar.find_rule(non_terminal, grammar)
+            # if rule's dot followed by a non terminal
+            nonterminal = Utils.get_nonterminal_followed_by_dot(rule)
+            if nonterminal is None:
+                continue
+
+            # get all the rules of that non_terminal
+            rules_of_nonterminal = Grammar.find_rule_and_deep_copy(nonterminal, grammar)
 
             # add dot in the beginning for all the production
-            for i in range(len(productions)):
-                productions[i].insert(2, ".")
+            for i in range(len(rules_of_nonterminal)):
+                rules_of_nonterminal[i].insert(2, ".")
 
-                # if it does not exist
-                if Utils.contains_string_array(productions[i], state.rules) is False:
-                    # add it to the state.rules
-                    state.rules.append(productions[i])
+                # if rules_of_nonterminal does not exist in state.rules
+                if rules_of_nonterminal[i] not in state.rules:
+                    # add it to the state.rules and unprocessed_rules
+                    state.rules.append(rules_of_nonterminal[i])
+                    unprocessed_rules.put(rules_of_nonterminal[i])
 
-                    # get the symbol following the dot
-                    symbol_followed_by_dot = productions[i][3]
-
-                    # if the symbol is a non terminal
-                    if re.compile(r'\A<.*>\Z').match(symbol_followed_by_dot):
-                        # if the symbol is not already in the queue, add it to queue
-                        queue.put(symbol_followed_by_dot)
-
+    def get_transition_inputs(self, state):
+        # add all symbols (terminal and nonterminal) to transition_inputs_queue
+        transition_inputs = []
         for rule in state.rules:
-            print(rule)
+            symbol = Utils.get_symbol_followed_by_dot(rule)
+            if symbol is not None:
+                transition_inputs.append(symbol)
 
-        #TODO:
-        # push the state0 to the unexpanded_states_queue
-        # add the state0 to the parser_states
-        # while unexpanded_states_queue is not empty
-        #       for rule in unexpanded_states_queue.get().rules
-        #           transition_queue = new queue
-        #           push all the symbol (NON TERMINAL OR TERMINAL)
-        #           followed by dot to transition_queue with no duplicates
-        #           optional code: if there is a rule with dot in the end, then this state is a reduce state
-        #       for all the symbol in transition_queue
-        #           create a new state
-        #           add all the rules from previous state (state0) where the dot is after the symbol
-        #           process all the non terminal symbols that are followed by the dot
-        #           create a transition from symbol,
-        #           if the new state does not exist in the parser_states
-        #               add the new state to the parser_states
-        #               add the new state to the unexpanded_states_queue
-        #               set the state of the transition to the new state
-        #           else
-        #               set the state of the transition to the existing state
-        #           add the transition to the previous state (state0)
-
-        # TODO:
-        # create a list of terminal symbols.
-        # after the finite state machine is expanded,
-
-        # TODO:
-        # after the finite state machine is expanded,
-        # check all reduce states, and add all the list of look-ahead
-
-        # TODO:
-        # think about how to produce the syntax errors
-        # think about the parse trees
-        # think what are the needed abstract syntax trees
-
+        return transition_inputs
