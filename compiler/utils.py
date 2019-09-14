@@ -32,11 +32,54 @@ class Utils:
         return None
 
     @staticmethod
-    def list_contains_state(list, state_to_check):
-        """checks the state_to_check if it has the same rules with any of the list.
-        when iterating the list, the state from the list and the state_to_check should
-        have similar rule in the same indexes for this function to return true"""
-        for state in list:
-            state_rules = state.rules
-            for x in len(state_rules):
+    def get_same_state_in_list(state_list, state_to_find):
+        """get state that has the same rules with state_to_find in state_list"""
+        for state in state_list:
+            found = Utils.are_states_rules_similar(state, state_to_find)
+            if found is True:
+                return state
+
+        return None
+
+    @staticmethod
+    def are_states_rules_similar(state1, state2):
+        """checks if the rules of two states is the same"""
+        state1_rules_len = len(state1.rules)
+        state2_rules_len = len(state2.rules)
+
+        if state1_rules_len != state2_rules_len:
+            return False
+
+        state2_indexes_done = []    # keep indexes of state2 that are done matching with state1
+        for state1_index in range(state1_rules_len):
+
+            found = False
+            for state2_index in range(state2_rules_len):
+                if state2_index in state2_indexes_done:
+                    continue
+
+                if state1.rules[state1_index] == state2.rules[state2_index]:
+                    found = True
+                    state2_indexes_done.append(state2_index)
+                    break
+
+            if found is False:
+                return False
+
+        return True
+
+    @staticmethod
+    def are_rules_similar(rule1, rule2):
+        """checks if two rules are similar"""
+        rule1_len = len(rule1)
+        rule2_len = len(rule2)
+
+        if rule1_len != rule2_len:
+            return False
+
+        for x in range(rule1_len):
+            if rule1[x] != rule2[x]:
+                return False
+
+        return True
 

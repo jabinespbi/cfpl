@@ -21,6 +21,7 @@ class Yacc:
         """
         self.lexical = Lexical(source_code)
         self.grammar = grammar
+        self.parser_states = []
 
     def create_parser(self):
         # create first state
@@ -28,9 +29,9 @@ class Yacc:
         # add rule to the state <CFPL>' -> . <CFPL>$
         dash = [self.grammar[0][0] + "'", "->", ".", self.grammar[0][0]]
         state0.rules.append(dash)
-        self.add_rules_with_nonterminal_followed_by_dot(state0, self.grammar)
+        self.add_rules_with_nonterminal_followed_by_dot(state0)
 
-        parser_states = [state0]
+        self.parser_states.append(state0)
 
         unexpanded_states_queue = Queue()
         unexpanded_states_queue.put(state0)
@@ -38,7 +39,8 @@ class Yacc:
         while unexpanded_states_queue.empty() is False:
             state = unexpanded_states_queue.get()
             transition_inputs_queue = Queue()
-            map(transition_inputs_queue.put, self.get_transition_inputs(state))
+            for transition_input in self.get_transition_inputs(state):
+                transition_inputs_queue.put(transition_input)
 
             # while transition_inputs_queue is not empty
             while transition_inputs_queue.empty() is False:
@@ -56,21 +58,22 @@ class Yacc:
 
                         new_state.rules.append(rule_copy)
 
-                self.add_rules_with_nonterminal_followed_by_dot(new_state, self.grammar)
+                self.add_rules_with_nonterminal_followed_by_dot(new_state)
                 transition = Transition()
 
                 # if new_state doesn't exist
-                transition.state = new_state
+                similar_state = Utils.get_same_state_in_list(self.parser_states, new_state)
+                if similar_state is None:
+                    transition.state = new_state
+                    self.parser_states.append(new_state)
+                    unexpanded_states_queue.put(new_state)
+                else:
+                    transition.state = similar_state
                 transition.transition_input = transition_input
 
                 state.transitions.append(transition)
 
-        # create a copy of a rule when moving dot rightwards
-        # add that rule to the state
-        # add rules with nonterminal followed by dot
-        # new transition from previous state to this state when input of the symbol
-
-    def add_rules_with_nonterminal_followed_by_dot(self, state, grammar):
+    def add_rules_with_nonterminal_followed_by_dot(self, state):
         """given state with initial rules, add rules to the state for all the current rules
         that has a production of dot followed by a non terminal"""
         # list of non terminal symbols
@@ -88,7 +91,7 @@ class Yacc:
                 continue
 
             # get all the rules of that non_terminal
-            rules_of_nonterminal = Grammar.find_rule_and_deep_copy(nonterminal, grammar)
+            rules_of_nonterminal = Grammar.find_rule_and_deep_copy(nonterminal, self.grammar)
 
             # add dot in the beginning for all the production
             for i in range(len(rules_of_nonterminal)):
@@ -105,7 +108,8 @@ class Yacc:
         transition_inputs = []
         for rule in state.rules:
             symbol = Utils.get_symbol_followed_by_dot(rule)
-            if symbol is not None:
+            if symbol is not None and symbol not in transition_inputs:
                 transition_inputs.append(symbol)
 
         return transition_inputs
+

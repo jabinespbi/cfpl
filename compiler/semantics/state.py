@@ -11,4 +11,4 @@ class State:
         # format: {
         #   "id": instance of Transition
         # }
-        self.transitions = {}
+        self.transitions = []
