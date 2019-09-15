@@ -49,6 +49,34 @@ class MyTestCase(unittest.TestCase):
         state3.rules.append(["F", "->", ".", "+", "F"])
         self.assertEqual(state1, Utils.get_same_state_in_list(state_list, state3))
 
+    def test_first(self):
+        grammar = [["<E>", "->", "<E>", "-", "<F>"],
+                   ["<E>", "->", "<F>"],
+                   ["<E>", "->", ""],
+                   ["<E>", "->", "/"],
+                   ["<F>", "->", "+", "<F>"],
+                   ["<F>", "->", "<G>"],
+                   ["<G>", "->", "id"]]
+        actual = Utils.first("<E>", grammar)
+        expected = ["-", "/", "+", "id"]
+
+        self.assertEqual(actual, expected)
+
+    def test_follow_rule(self):
+        grammar = [["<E>", "->", "<E>", "<E>", "-", "<E>", "*", "<F>"],
+                   ["<E>", "->", "<F>"],
+                   ["<E>", "->", ""],
+                   ["<E>", "->", "/"],
+                   ["<F>", "->", "+", "<F>"],
+                   ["<F>", "->", "<G>"],
+                   ["<G>", "->", "id"]]
+        actual = Utils.follow_rule(grammar[0], "<E>", grammar)
+        expected = {
+            'follows': ['-', '/', '+', 'id', '*'],
+            'follow_rule': False
+        }
+
+        self.assertEqual(expected, actual)
 
 if __name__ == '__main__':
     unittest.main()

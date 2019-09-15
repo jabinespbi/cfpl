@@ -1,5 +1,6 @@
 import unittest
 
+from compiler.semantics.grammar import Grammar
 from compiler.semantics.state import State
 from compiler.semantics.yacc import Yacc
 
@@ -155,6 +156,15 @@ class TestYacc(unittest.TestCase):
 
         self.assertEqual(state8.rules, expected_state8_rules)
         self.assertEqual(len(state8.transitions), 0)
+
+    def test_create_parser_for_cflp(self):
+        yacc = Yacc(Grammar.get_grammar(), "")
+        yacc.create_parser()
+
+        for state in yacc.parser_states:
+            print("\nNew State -------------------")
+            for rule in state.rules:
+                print(rule)
 
 if __name__ == '__main__':
     unittest.main()

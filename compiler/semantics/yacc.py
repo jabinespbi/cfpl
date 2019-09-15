@@ -16,7 +16,9 @@ class Yacc:
             [
                 ["E", "->", "E", "+", "F"],
                 ["F", "->", "+", "G"],
-                ["G", "->", "id"]
+                ["G", "->", "id"],
+                ["G"], "->", ""]            -> means that G can be empty, this is what this yacc
+                                                assumes with empty production
             ]
         """
         self.lexical = Lexical(source_code)
