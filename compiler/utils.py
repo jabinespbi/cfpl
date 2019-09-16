@@ -120,13 +120,13 @@ class Utils:
     def follow_rule(rule, nonterminal, grammar):
         return_value = {
             'follows': [],
-            'follow_rule': True         # true if needs to continue following lhs of the rule (follow(lhs)) because
+            'follow_rule': False        # true if needs to continue following lhs of the rule (follow(lhs)) because
                                         # follow(nonterminal) hits the end of the rule
         }
 
         for x in range(2, len(rule)):
             if rule[x] is nonterminal:
-                if x + 1 <= len(rule):
+                if x + 1 < len(rule):
                     for y in range(x + 1, len(rule)):
                         if Utils.is_nonterminal(rule[y]):
                             firsts = Utils.first(rule[y], grammar)
@@ -136,6 +136,8 @@ class Utils:
                             if Utils.contains_empty_production(rule[y], grammar) is False:
                                 return_value['follow_rule'] = False
                                 break
+                            elif y is len(rule) - 1:
+                                return_value['follow_rule'] = True
                         elif rule[y] is not "":
                             if rule[y] not in return_value['follows']:
                                 return_value['follows'].append(rule[y])
@@ -143,6 +145,8 @@ class Utils:
                             break
                         else:
                             raise UnexpectedError("Unexpected empty production!")
+                else:
+                    return_value['follow_rule'] = True
 
         return return_value
 

@@ -96,6 +96,25 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_follow_empty_production_last(self):
+        grammar = [["<E>", "->", "<E>", "<E>", "-", "<E>", "*", "<F>"],
+                   ["<E>", "->", "<F>"],
+                   ["<E>", "->", ""],
+                   ["<E>", "->", "/"],
+                   ["<F>", "->", "+", "<F>"],
+                   ["<F>", "->", "<G>", "<G>", "<Z>"],
+                   ["<G>", "->", "id"],
+                   ["<G>", "->", ""],
+                   ["<Z>", "->", "!"],
+                   ["<Z>", "->", "@"],
+                   ["<Z>", "->", "#"],
+                   ["<Z>", "->", ""],
+                   ]
+        actual = Utils.follow("<G>", grammar)
+        expected = ['id', '!', '@', '#', 'EoI', '-', '/', '+', '*']
+
+        self.assertEqual(expected, actual)
+
     def test_follow_EoI(self):
         grammar = [["<E>", "->", "<E>", "<E>", "-", "<E>", "*", "<F>"],
                    ["<E>", "->", "<F>"],
