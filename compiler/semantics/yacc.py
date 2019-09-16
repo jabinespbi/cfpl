@@ -127,7 +127,16 @@ class Yacc:
 
                     self.slr1[x][transition.transition_input] = action
 
-
+    def create_parse_tree(self):
+        """Creates the parse tree using the slr1 parsing table"""
+        stack = ["EoS", "0"]
+        curr_state = 0
+        try:
+            while True:
+                symbol = self.lexical.next()
+                self.slr1[curr_state][symbol]
+        except EOFError:
+            print("Found the end of input")
 
     def add_rules_with_nonterminal_followed_by_dot(self, state):
         """given state with initial rules, add rules to the state for all the current rules
