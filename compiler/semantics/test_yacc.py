@@ -1,20 +1,23 @@
 import unittest
 
+from compiler.semantics.action_type import ActionType
 from compiler.semantics.grammar import Grammar
 from compiler.semantics.state import State
 from compiler.semantics.yacc import Yacc
 
 
 class TestYacc(unittest.TestCase):
-    def test_add_visible_rules(self):
-        grammar = [
-                ["<E>", "->", "<E>", "+", "<F>"],
-                ["<E>", "->", "<F>"],
-                ["<F>", "->", "+", "<F>"],
-                ["<F>", "->", "<G>"],
-                ["<G>", "->", "id"]
-            ]
+    def create_sample_grammar(self):
+        return [
+            ["<E>", "->", "<E>", "+", "<F>"],
+            ["<E>", "->", "<F>"],
+            ["<F>", "->", "+", "<F>"],
+            ["<F>", "->", "<G>"],
+            ["<G>", "->", "id"]
+        ]
 
+    def test_add_visible_rules(self):
+        grammar = self.create_sample_grammar()
         yacc = Yacc(grammar, "")
 
         # create first state
@@ -25,24 +28,17 @@ class TestYacc(unittest.TestCase):
         yacc.add_rules_with_nonterminal_followed_by_dot(state0)
 
         expected = [
-                    ["<E>'", '->', '.', '<E>'],
-                    ['<E>', '->', '.', '<E>', '+', '<F>'],
-                    ['<E>', '->', '.', '<F>'],
-                    ['<F>', '->', '.', '+', '<F>'],
-                    ['<F>', '->', '.', '<G>'],
-                    ['<G>', '->', '.', 'id'],
-                ]
+            ["<E>'", '->', '.', '<E>'],
+            ['<E>', '->', '.', '<E>', '+', '<F>'],
+            ['<E>', '->', '.', '<F>'],
+            ['<F>', '->', '.', '+', '<F>'],
+            ['<F>', '->', '.', '<G>'],
+            ['<G>', '->', '.', 'id'],
+        ]
         self.assertEqual(state0.rules, expected)
 
     def test_create_parser(self):
-        grammar = [
-                ["<E>", "->", "<E>", "+", "<F>"],
-                ["<E>", "->", "<F>"],
-                ["<F>", "->", "+", "<F>"],
-                ["<F>", "->", "<G>"],
-                ["<G>", "->", "id"]
-            ]
-
+        grammar = self.create_sample_grammar()
         yacc = Yacc(grammar, "")
         yacc.create_parser()
         state0 = yacc.parser_states[0]
@@ -157,6 +153,7 @@ class TestYacc(unittest.TestCase):
         self.assertEqual(state8.rules, expected_state8_rules)
         self.assertEqual(len(state8.transitions), 0)
 
+    @unittest.skip("prints a long message")
     def test_create_parser_for_cflp(self):
         yacc = Yacc(Grammar.get_grammar(), "")
         yacc.create_parser()
@@ -165,6 +162,100 @@ class TestYacc(unittest.TestCase):
             print("\nNew State -------------------")
             for rule in state.rules:
                 print(rule)
+
+    def test_create_parsing_table(self):
+        grammar = self.create_sample_grammar()
+        yacc = Yacc(grammar, "")
+        yacc.create_parser()
+        yacc.create_parsing_table()
+
+        self.assertEqual(yacc.slr1[0]["+"].type, ActionType.SHIFT)
+        self.assertEqual(yacc.slr1[0]["+"].next_state, 3)
+        self.assertEqual(yacc.slr1[0]["id"].type, ActionType.SHIFT)
+        self.assertEqual(yacc.slr1[0]["id"].next_state, 5)
+        self.assertEqual(yacc.slr1[0]["EoI"], None)
+        self.assertEqual(yacc.slr1[0]["<E>"].type, ActionType.GOTO)
+        self.assertEqual(yacc.slr1[0]["<E>"].next_state, 1)
+        self.assertEqual(yacc.slr1[0]["<F>"].type, ActionType.GOTO)
+        self.assertEqual(yacc.slr1[0]["<F>"].next_state, 2)
+        self.assertEqual(yacc.slr1[0]["<G>"].type, ActionType.GOTO)
+        self.assertEqual(yacc.slr1[0]["<G>"].next_state, 4)
+
+        self.assertEqual(yacc.slr1[1]["+"].type, ActionType.SHIFT)
+        self.assertEqual(yacc.slr1[1]["+"].next_state, 6)
+        self.assertEqual(yacc.slr1[1]["id"], None)
+        self.assertEqual(yacc.slr1[1]["EoI"].type, ActionType.ACCEPT)
+        self.assertEqual(yacc.slr1[1]["<E>"], None)
+        self.assertEqual(yacc.slr1[1]["<F>"], None)
+        self.assertEqual(yacc.slr1[1]["<G>"], None)
+
+        self.assertEqual(yacc.slr1[2]["+"].type, ActionType.REDUCE)
+        self.assertEqual(yacc.slr1[2]["+"].reduce_rule, ["<E>", "->", "<F>"])
+        self.assertEqual(yacc.slr1[2]["id"], None)
+        self.assertEqual(yacc.slr1[2]["EoI"].type, ActionType.REDUCE)
+        self.assertEqual(yacc.slr1[2]["EoI"].reduce_rule, ["<E>", "->", "<F>"])
+        self.assertEqual(yacc.slr1[2]["<E>"], None)
+        self.assertEqual(yacc.slr1[2]["<F>"], None)
+        self.assertEqual(yacc.slr1[2]["<G>"], None)
+
+        self.assertEqual(yacc.slr1[3]["+"].type, ActionType.SHIFT)
+        self.assertEqual(yacc.slr1[3]["+"].next_state, 3)
+        self.assertEqual(yacc.slr1[3]["id"].type, ActionType.SHIFT)
+        self.assertEqual(yacc.slr1[3]["id"].next_state, 5)
+        self.assertEqual(yacc.slr1[3]["EoI"], None)
+        self.assertEqual(yacc.slr1[3]["<E>"], None)
+        self.assertEqual(yacc.slr1[3]["<F>"].type, ActionType.GOTO)
+        self.assertEqual(yacc.slr1[3]["<F>"].next_state, 7)
+        self.assertEqual(yacc.slr1[3]["<G>"].type, ActionType.GOTO)
+        self.assertEqual(yacc.slr1[3]["<G>"].next_state, 4)
+
+        self.assertEqual(yacc.slr1[4]["+"].type, ActionType.REDUCE)
+        self.assertEqual(yacc.slr1[4]["+"].reduce_rule, ["<F>", "->", "<G>"])
+        self.assertEqual(yacc.slr1[4]["id"], None)
+        self.assertEqual(yacc.slr1[4]["EoI"].type, ActionType.REDUCE)
+        self.assertEqual(yacc.slr1[4]["EoI"].reduce_rule, ["<F>", "->", "<G>"])
+        self.assertEqual(yacc.slr1[4]["<E>"], None)
+        self.assertEqual(yacc.slr1[4]["<F>"], None)
+        self.assertEqual(yacc.slr1[4]["<G>"], None)
+
+        self.assertEqual(yacc.slr1[5]["+"].type, ActionType.REDUCE)
+        self.assertEqual(yacc.slr1[5]["+"].reduce_rule, ["<G>", "->", "id"])
+        self.assertEqual(yacc.slr1[5]["id"], None)
+        self.assertEqual(yacc.slr1[5]["EoI"].type, ActionType.REDUCE)
+        self.assertEqual(yacc.slr1[5]["EoI"].reduce_rule, ["<G>", "->", "id"])
+        self.assertEqual(yacc.slr1[5]["<E>"], None)
+        self.assertEqual(yacc.slr1[5]["<F>"], None)
+        self.assertEqual(yacc.slr1[5]["<G>"], None)
+
+        self.assertEqual(yacc.slr1[6]["+"].type, ActionType.SHIFT)
+        self.assertEqual(yacc.slr1[6]["+"].next_state, 3)
+        self.assertEqual(yacc.slr1[6]["id"].type, ActionType.SHIFT)
+        self.assertEqual(yacc.slr1[6]["id"].next_state, 5)
+        self.assertEqual(yacc.slr1[6]["EoI"], None)
+        self.assertEqual(yacc.slr1[6]["<E>"], None)
+        self.assertEqual(yacc.slr1[6]["<F>"].type, ActionType.GOTO)
+        self.assertEqual(yacc.slr1[6]["<F>"].next_state, 8)
+        self.assertEqual(yacc.slr1[6]["<G>"].type, ActionType.GOTO)
+        self.assertEqual(yacc.slr1[6]["<G>"].next_state, 4)
+
+        self.assertEqual(yacc.slr1[7]["+"].type, ActionType.REDUCE)
+        self.assertEqual(yacc.slr1[7]["+"].reduce_rule, ["<F>", "->", "+", "<F>"])
+        self.assertEqual(yacc.slr1[7]["id"], None)
+        self.assertEqual(yacc.slr1[7]["EoI"].type, ActionType.REDUCE)
+        self.assertEqual(yacc.slr1[7]["EoI"].reduce_rule, ["<F>", "->", "+", "<F>"])
+        self.assertEqual(yacc.slr1[7]["<E>"], None)
+        self.assertEqual(yacc.slr1[7]["<F>"], None)
+        self.assertEqual(yacc.slr1[7]["<G>"], None)
+
+        self.assertEqual(yacc.slr1[8]["+"].type, ActionType.REDUCE)
+        self.assertEqual(yacc.slr1[8]["+"].reduce_rule, ["<E>", "->", "<E>", "+", "<F>"])
+        self.assertEqual(yacc.slr1[8]["id"], None)
+        self.assertEqual(yacc.slr1[8]["EoI"].type, ActionType.REDUCE)
+        self.assertEqual(yacc.slr1[8]["EoI"].reduce_rule, ["<E>", "->", "<E>", "+", "<F>"])
+        self.assertEqual(yacc.slr1[8]["<E>"], None)
+        self.assertEqual(yacc.slr1[8]["<F>"], None)
+        self.assertEqual(yacc.slr1[8]["<G>"], None)
+
 
 if __name__ == '__main__':
     unittest.main()

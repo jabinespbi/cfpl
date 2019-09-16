@@ -88,8 +88,11 @@ class Utils:
 
     @staticmethod
     def follow(nonterminal, grammar):
-        """return a list of follows of symbol."""
+        """return a list of follows of symbol.
+        the first rule is the start rule of the grammar.
+        the follow of first rule is EoI (End of Input)"""
         follows = []
+        first_nonterminal = grammar[0][0]
 
         done = [nonterminal]
         queue = Queue()
@@ -98,8 +101,20 @@ class Utils:
         while queue.empty() is False:
             nonterminal = queue.get()
 
+            if nonterminal is first_nonterminal and "EoI" not in follows:
+                follows.append("EoI")
+
             for rule in grammar:
-                Utils.follow_rule(rule, nonterminal, grammar)
+                follows_rule = Utils.follow_rule(rule, nonterminal, grammar)
+                if follows_rule['follow_rule'] and rule[0] not in done:
+                    queue.put(rule[0])
+                    done.append(rule[0])
+
+                for follow_rule in follows_rule['follows']:
+                    if follow_rule not in follows:
+                        follows.append(follow_rule)
+
+        return follows
 
     @staticmethod
     def follow_rule(rule, nonterminal, grammar):
@@ -114,7 +129,7 @@ class Utils:
                 if x + 1 <= len(rule):
                     for y in range(x + 1, len(rule)):
                         if Utils.is_nonterminal(rule[y]):
-                            firsts = Utils.first(nonterminal, grammar)
+                            firsts = Utils.first(rule[y], grammar)
                             for first in firsts:
                                 if first not in return_value['follows']:
                                     return_value['follows'].append(first)
@@ -185,3 +200,13 @@ class Utils:
     @staticmethod
     def is_nonterminal(symbol):
         return re.compile(r'\A<.*>\Z').match(symbol)
+
+    @staticmethod
+    def get_all_symbols(grammar):
+        symbols = []
+        for rule in grammar:
+            for symbol in range(2, len(rule)):
+                if rule[symbol] is not "" and rule[symbol] not in symbols:
+                    symbols.append(rule[symbol])
+
+        return symbols

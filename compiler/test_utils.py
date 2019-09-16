@@ -78,5 +78,42 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_follow(self):
+        grammar = [["<E>", "->", "<E>", "<E>", "-", "<E>", "*", "<F>"],
+                   ["<E>", "->", "<F>"],
+                   ["<E>", "->", ""],
+                   ["<E>", "->", "/"],
+                   ["<F>", "->", "+", "<F>"],
+                   ["<F>", "->", "<G>", "<G>", "<Z>"],
+                   ["<G>", "->", "id"],
+                   ["<G>", "->", ""],
+                   ["<Z>", "->", "!"],
+                   ["<Z>", "->", "@"],
+                   ["<Z>", "->", "#"],
+                   ]
+        actual = Utils.follow("<G>", grammar)
+        expected = ['id', '!', '@', '#']
+
+        self.assertEqual(expected, actual)
+
+    def test_follow_EoI(self):
+        grammar = [["<E>", "->", "<E>", "<E>", "-", "<E>", "*", "<F>"],
+                   ["<E>", "->", "<F>"],
+                   ["<E>", "->", ""],
+                   ["<E>", "->", "/"],
+                   ["<F>", "->", "+", "<F>"],
+                   ["<F>", "->", "<G>", "<G>", "<Z>"],
+                   ["<G>", "->", "id"],
+                   ["<G>", "->", ""],
+                   ["<Z>", "->", "!"],
+                   ["<Z>", "->", "@"],
+                   ["<Z>", "->", "#"],
+                   ]
+        actual = Utils.follow("<E>", grammar)
+        expected = ['EoI', '-', '/', '+', 'id', '!', '@', '#', '*']
+
+        self.assertEqual(expected, actual)
+
+
 if __name__ == '__main__':
     unittest.main()

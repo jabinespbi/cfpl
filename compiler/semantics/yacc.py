@@ -1,6 +1,9 @@
 from queue import Queue
 
 from compiler.lexical.lexical import Lexical
+from compiler.parsing_table_error import ParsingTableError
+from compiler.semantics.action import Action
+from compiler.semantics.action_type import ActionType
 from compiler.semantics.grammar import Grammar
 from compiler.semantics.state import State
 from compiler.semantics.transition import Transition
@@ -24,6 +27,7 @@ class Yacc:
         self.lexical = Lexical(source_code)
         self.grammar = grammar
         self.parser_states = []
+        self.slr1 = {}
 
     def create_parser(self):
         # create first state
@@ -75,6 +79,56 @@ class Yacc:
 
                 state.transitions.append(transition)
 
+    def create_parsing_table(self):
+        """creates slr(1) parsing table after calling create_parser() which creates the finite state diagram"""
+        symbols = Utils.get_all_symbols(self.grammar)
+        symbols.append("EoI")
+        for x in range(len(self.parser_states)):
+            self.slr1[x] = {}
+            for symbol in symbols:
+                self.slr1[x][symbol] = None
+
+        for x in range(len(self.parser_states)):
+            state = self.parser_states[x]
+            for rule in state.rules:
+                if rule[len(rule) - 1] == '.':  # if reduce state
+                    if rule[0][len(rule[0]) - 1] == "'":    # if accept state
+                        action = Action()
+                        action.type = ActionType.ACCEPT
+                        self.slr1[x]["EoI"] = action
+                    else:
+                        follows = Utils.follow(rule[0], self.grammar)
+                        action = Action()
+                        action.type = ActionType.REDUCE
+                        action.reduce_rule = rule.copy()
+                        action.reduce_rule.remove('.')
+                        for follow in follows:
+                            if self.slr1[x][follow] is not None:
+                                conflict = self.slr1[x][follow].type
+                                message = "Found confict : reduce - " + conflict + " at state " + x + "on input " + follow
+                                raise ParsingTableError(message)
+
+                            self.slr1[x][follow] = action
+
+            for transition in state.transitions:
+                if Utils.is_nonterminal(transition.transition_input):
+                    action = Action()
+                    action.type = ActionType.GOTO
+                    action.next_state = self.parser_states.index(transition.state)
+                    self.slr1[x][transition.transition_input] = action
+                else:
+                    action = Action()
+                    action.type = ActionType.SHIFT
+                    action.next_state = self.parser_states.index(transition.state)
+                    if self.slr1[x][transition.transition_input] is not None:
+                        conflict = self.slr1[x][transition.transition_input].type
+                        message = "Found confict : shift - " + conflict + " at state " + x + "on input " + transition.transition_input
+                        raise ParsingTableError(message)
+
+                    self.slr1[x][transition.transition_input] = action
+
+
+
     def add_rules_with_nonterminal_followed_by_dot(self, state):
         """given state with initial rules, add rules to the state for all the current rules
         that has a production of dot followed by a non terminal"""
@@ -114,4 +168,5 @@ class Yacc:
                 transition_inputs.append(symbol)
 
         return transition_inputs
+
 
