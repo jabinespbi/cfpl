@@ -105,7 +105,7 @@ class Yacc:
                         for follow in follows:
                             if self.slr1[x][follow] is not None:
                                 conflict = self.slr1[x][follow].type
-                                message = "Found confict : reduce - " + conflict + " at state " + x + "on input " + follow
+                                message = "Found confict : reduce - " + conflict.name + " at state " + str(x) + " on input '" + follow + "'"
                                 raise ParsingTableError(message)
 
                             self.slr1[x][follow] = action
@@ -122,7 +122,7 @@ class Yacc:
                     action.next_state = self.parser_states.index(transition.state)
                     if self.slr1[x][transition.transition_input] is not None:
                         conflict = self.slr1[x][transition.transition_input].type
-                        message = "Found confict : shift - " + conflict + " at state " + x + "on input " + transition.transition_input
+                        message = "Found confict : shift - " + conflict.name + " at state " + str(x) + " on input " + transition.transition_input
                         raise ParsingTableError(message)
 
                     self.slr1[x][transition.transition_input] = action

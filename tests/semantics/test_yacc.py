@@ -158,10 +158,25 @@ class TestYacc(unittest.TestCase):
         yacc = Yacc(Grammar.get_grammar(), "")
         yacc.create_parser()
 
+        i = 0
         for state in yacc.parser_states:
-            print("\nNew State -------------------")
+            print("\nState" + str(i))
+            i += 1
             for rule in state.rules:
                 print(rule)
+
+    # @unittest.skip("prints a long message")
+    def test_create_parsing_table_for_cflp(self):
+        yacc = Yacc(Grammar.get_grammar(), "")
+        yacc.create_parser()
+
+        i = 0
+        for state in yacc.parser_states:
+            print("\nState" + str(i))
+            i += 1
+            for rule in state.rules:
+                print(rule)
+        yacc.create_parsing_table()
 
     def test_create_parsing_table(self):
         grammar = self.create_sample_grammar()
@@ -255,6 +270,22 @@ class TestYacc(unittest.TestCase):
         self.assertEqual(yacc.slr1[8]["<E>"], None)
         self.assertEqual(yacc.slr1[8]["<F>"], None)
         self.assertEqual(yacc.slr1[8]["<G>"], None)
+
+    def test_create_parse_tree(self):
+        lexemes = "* my first program in CFPL" + '\n' + \
+                  "VAR abc, b, c AS INT" + '\n' + \
+                  "VAR x, w_23='w' AS CHAR" + '\n' + \
+                  "VAR t=\"TRUE\" AS BOOL" + '\n' + \
+                  "START" + '\n' + \
+                  "     abc=b=10" + '\n' + \
+                  "     w_23='a'" + '\n' + \
+                  "     * this is a comment" + '\n' + \
+                  "     OUTPUT: abc & \"hi\" & b & \"#\" & w_23 & \"[#]\"" + '\n' + \
+                  "STOP" + '\n'
+        yacc = Yacc(Grammar.get_grammar(), lexemes)
+        yacc.create_parser()
+        yacc.create_parsing_table()
+        yacc.create_parse_tree()
 
 
 if __name__ == '__main__':
