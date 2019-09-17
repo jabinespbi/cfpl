@@ -95,7 +95,7 @@ class Yacc:
             state = self.parser_states[x]
             for rule in state.rules:
                 if rule[len(rule) - 1] == '.':  # if reduce state
-                    if rule[0][len(rule[0]) - 1] == "'":    # if accept state
+                    if rule[0][len(rule[0]) - 1] == "'":  # if accept state
                         action = Action()
                         action.type = ActionType.ACCEPT
                         self.slr1[x]["EoI"] = action
@@ -108,7 +108,8 @@ class Yacc:
                         for follow in follows:
                             if self.slr1[x][follow] is not None:
                                 conflict = self.slr1[x][follow].type
-                                message = "Found confict : reduce - " + conflict.name + " at state " + str(x) + " on input '" + follow + "'"
+                                message = "Found confict : reduce - " + conflict.name + " at state " + str(
+                                    x) + " on input '" + follow + "'"
                                 raise ParsingTableError(message)
 
                             self.slr1[x][follow] = action
@@ -125,7 +126,8 @@ class Yacc:
                     action.next_state = self.parser_states.index(transition.state)
                     if self.slr1[x][transition.transition_input] is not None:
                         conflict = self.slr1[x][transition.transition_input].type
-                        message = "Found confict : shift - " + conflict.name + " at state " + str(x) + " on input " + transition.transition_input
+                        message = "Found confict : shift - " + conflict.name + " at state " + str(
+                            x) + " on input " + transition.transition_input
                         raise ParsingTableError(message)
 
                     self.slr1[x][transition.transition_input] = action
@@ -134,20 +136,26 @@ class Yacc:
         """Creates the parse tree using the slr1 parsing table"""
         stack = ["EoS", 0]
         try:
+            token_indexes = self.lexical.next()
             while True:
-                token_indexes = self.lexical.next()
                 symbol = SymbolTable.getInstance().unknown_tokens[token_indexes[0]]
-                grammar_symbol = symbol.token
+                grammar_symbol = symbol['token']
 
-                if symbol.grammar_symbol is not None:
-                    grammar_symbol = symbol.grammar_symbol
+                if symbol['grammar_symbol'] is not None:
+                    grammar_symbol = symbol['grammar_symbol']
                 action = self.slr1[stack[-1]][grammar_symbol]
+
+                if action is None:
+                    print("A syntax error is found at index " + str(token_indexes[0]) + ", token " + symbol[
+                        'token'] + ".")
+                    print("Information: curr_state", stack[-1], "on input '", symbol['grammar_symbol'], "'")
 
                 if action.type is ActionType.SHIFT:
                     node = Tree()
                     node.root = symbol
                     stack.append(node)
                     stack.append(action.next_state)
+                    token_indexes = self.lexical.next()
                 elif action.type is ActionType.GOTO:
                     raise Exception("Unexpected action type: GOTO! GOTO should only be after reduce action!")
                 elif action.type is ActionType.REDUCE:
@@ -172,7 +180,10 @@ class Yacc:
                     print("Syntax analysis is complete!")
                     return
         except EOFError:
-            print("Found the end of input")
+            print("Found the end of input!")
+            print("Last token: ", self.lexical.lexemes[token_indexes[0]: token_indexes[1]])
+        except KeyError:
+            print("Key is not found in the symbol table! ", self.lexical.lexemes[token_indexes[0]: token_indexes[1]])
 
     def add_rules_with_nonterminal_followed_by_dot(self, state):
         """given state with initial rules, add rules to the state for all the current rules
@@ -213,5 +224,3 @@ class Yacc:
                 transition_inputs.append(symbol)
 
         return transition_inputs
-
-

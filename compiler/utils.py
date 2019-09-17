@@ -222,6 +222,7 @@ class Utils:
 
     @staticmethod
     def get_grammar_symbol(token):
+        reserved_keywords = r'\AINT|CHAR|BOOL|FLOAT|AND|OR|NOT|START|STOP|VAR|AS|OUTPUT:|INPUT:\Z'
         id_regex = r'\A[$_a-zA-Z][$_a-zA-Z0-9]*\Z'
         bool_lit = r'\A\"(TRUE)|(FALSE)\"\Z'
         int_lit = r'\A[1-9][0-9]*\Z'
@@ -229,7 +230,9 @@ class Utils:
         string_lit = r'\A\".*\"\Z'
         char_lit = r'\A\'.\'\Z'
 
-        if Utils.is_string_match_regex(token, id_regex):
+        if Utils.is_string_match_regex(token, reserved_keywords):
+            return None
+        elif Utils.is_string_match_regex(token, id_regex):
             return "ID"
         elif Utils.is_string_match_regex(token, bool_lit):
             return "BLIT"

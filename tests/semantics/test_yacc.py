@@ -165,7 +165,7 @@ class TestYacc(unittest.TestCase):
             for rule in state.rules:
                 print(rule)
 
-    @unittest.skip("prints a long message")
+    # @unittest.skip("prints a long message")
     def test_create_parsing_table_for_cflp(self):
         yacc = Yacc(Grammar.get_grammar(), "")
         yacc.create_parser()

@@ -1,4 +1,5 @@
 from compiler.lexical.valid_token import ValidToken
+from compiler.utils import Utils
 
 
 class State3:
@@ -14,7 +15,9 @@ class State3:
             lexical.curr_state = lexical.state1
             token_index = lexical.curr_index
             lexical.curr_index += 1
-            return [token_index, token_index + 1]
+            token_indexes_found = [token_index, token_index + 1]
+            Utils.add_symbol_to_symbol_table(token_indexes_found, lexical.lexemes)
+            return token_indexes_found
         elif curr_char == ' ':
             lexical.curr_state = lexical.state3
             lexical.curr_index += 1
