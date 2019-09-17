@@ -129,12 +129,11 @@ class Yacc:
 
     def create_parse_tree(self):
         """Creates the parse tree using the slr1 parsing table"""
-        stack = ["EoS", "0"]
-        curr_state = 0
+        stack = ["EoS", 0]
         try:
             while True:
                 symbol = self.lexical.next()
-                self.slr1[curr_state][symbol]
+                action = self.slr1[stack[-1]][symbol]
         except EOFError:
             print("Found the end of input")
 

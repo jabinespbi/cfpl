@@ -37,7 +37,7 @@ class Grammar:
             ["<E>", "->", "<INT>"],
             ["<ASS>", "->", "<LVAL>", "=", "<EXP>"],
             ["<LVAL>", "->", "ID"],
-            ["<LVAL>", "->""ID", "=", "<LVAL>"],
+            ["<LVAL>", "->", "ID", "=", "<LVAL>"],
             ["<EXP>", "->", "<EXP>", "OR", "<EXPA>"],
             ["<EXP>", "->", "<EXPA>"],
             ["<EXPA>", "->", "<EXPA>", "AND", "<EXPE>"],

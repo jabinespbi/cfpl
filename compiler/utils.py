@@ -1,6 +1,7 @@
 import re
 from queue import Queue
 
+from compiler.symbols.symbol_table import SymbolTable
 from compiler.unexpected_error import UnexpectedError
 
 
@@ -206,6 +207,10 @@ class Utils:
         return re.compile(r'\A<.*>\Z').match(symbol)
 
     @staticmethod
+    def is_string_match_regex(string, regex):
+        return re.compile(regex).match(string)
+
+    @staticmethod
     def get_all_symbols(grammar):
         symbols = []
         for rule in grammar:
@@ -214,3 +219,36 @@ class Utils:
                     symbols.append(rule[symbol])
 
         return symbols
+
+    @staticmethod
+    def get_grammar_symbol(token):
+        id_regex = r'\A[$_a-zA-Z][$_a-zA-Z0-9]*\Z'
+        bool_lit = r'\A\"(TRUE)|(FALSE)\"\Z'
+        int_lit = r'\A[1-9][0-9]*\Z'
+        float_lit = r'\A[0-9]*\.[0-9]+\Z'
+        string_lit = r'\A\".*\"\Z'
+        char_lit = r'\A\'.\'\Z'
+
+        if Utils.is_string_match_regex(token, id_regex):
+            return "ID"
+        elif Utils.is_string_match_regex(token, bool_lit):
+            return "BLIT"
+        elif Utils.is_string_match_regex(token, int_lit):
+            return "ILIT"
+        elif Utils.is_string_match_regex(token, float_lit):
+            return "FLIT"
+        elif Utils.is_string_match_regex(token, string_lit):
+            return "SLIT"
+        elif Utils.is_string_match_regex(token, char_lit):
+            return "CLIT"
+        else:
+            return None
+
+    @staticmethod
+    def add_symbol_to_symbol_table(token_indexes_found, lexemes):
+        symbol = lexemes[token_indexes_found[0]: token_indexes_found[1]]
+        grammar_symbol = Utils.get_grammar_symbol(symbol)
+        SymbolTable.getInstance().unknown_tokens[token_indexes_found[0]] = {
+            "token": symbol,
+            "grammar_symbol": grammar_symbol
+        }
