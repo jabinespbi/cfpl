@@ -7,6 +7,8 @@ from compiler.semantics.action_type import ActionType
 from compiler.semantics.grammar import Grammar
 from compiler.semantics.state import State
 from compiler.semantics.transition import Transition
+from compiler.symbols.symbol_table import SymbolTable
+from compiler.tree import Tree
 from compiler.utils import Utils
 
 
@@ -28,6 +30,7 @@ class Yacc:
         self.grammar = grammar
         self.parser_states = []
         self.slr1 = {}
+        self.parse_tree = None
 
     def create_parser(self):
         # create first state
@@ -132,8 +135,42 @@ class Yacc:
         stack = ["EoS", 0]
         try:
             while True:
-                symbol = self.lexical.next()
-                action = self.slr1[stack[-1]][symbol]
+                token_indexes = self.lexical.next()
+                symbol = SymbolTable.getInstance().unknown_tokens[token_indexes[0]]
+                grammar_symbol = symbol.token
+
+                if symbol.grammar_symbol is not None:
+                    grammar_symbol = symbol.grammar_symbol
+                action = self.slr1[stack[-1]][grammar_symbol]
+
+                if action.type is ActionType.SHIFT:
+                    node = Tree()
+                    node.root = symbol
+                    stack.append(node)
+                    stack.append(action.next_state)
+                elif action.type is ActionType.GOTO:
+                    raise Exception("Unexpected action type: GOTO! GOTO should only be after reduce action!")
+                elif action.type is ActionType.REDUCE:
+                    parent = Tree()
+                    reduce_rule = action.reduce_rule
+                    parent.root = reduce_rule[0]
+                    rhs_length = len(reduce_rule) - 2
+
+                    for x in range(rhs_length):
+                        stack.pop()
+                        child = stack.pop()
+                        parent.children.append(child)
+
+                    action = self.slr1[stack[-1]][reduce_rule[0]]
+                    if action.type is not ActionType.GOTO:
+                        raise Exception("Unexpected action type: " + action.type.name + "! Should be GOTO action!")
+
+                    stack.append(parent)
+                    stack.append(action.next_state)
+                elif action.type is ActionType.ACCEPT:
+                    self.parse_tree = stack[-1]
+                    print("Syntax analysis is complete!")
+                    return
         except EOFError:
             print("Found the end of input")
 

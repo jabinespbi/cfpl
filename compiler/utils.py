@@ -249,6 +249,7 @@ class Utils:
         symbol = lexemes[token_indexes_found[0]: token_indexes_found[1]]
         grammar_symbol = Utils.get_grammar_symbol(symbol)
         SymbolTable.getInstance().unknown_tokens[token_indexes_found[0]] = {
+            "uid": token_indexes_found[0],
             "token": symbol,
             "grammar_symbol": grammar_symbol
         }
