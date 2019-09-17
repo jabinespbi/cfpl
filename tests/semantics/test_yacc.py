@@ -165,18 +165,27 @@ class TestYacc(unittest.TestCase):
             for rule in state.rules:
                 print(rule)
 
-    # @unittest.skip("prints a long message")
+    @unittest.skip("prints a long message")
     def test_create_parsing_table_for_cflp(self):
         yacc = Yacc(Grammar.get_grammar(), "")
         yacc.create_parser()
-
-        i = 0
-        for state in yacc.parser_states:
-            print("\nState" + str(i))
-            i += 1
-            for rule in state.rules:
-                print(rule)
         yacc.create_parsing_table()
+
+        for x in yacc.slr1:
+            print("\nState" + str(x))
+            for y in yacc.slr1[x]:
+                action = yacc.slr1[x][y]
+                if y is '\n':
+                    msg = "'\\n'" + ": "
+                else:
+                    msg = "'" + y + "'" + ": "
+                if action is not None:
+                    msg += "[" + action.type.name + "]" + " state[" + str(action.next_state) + "]"
+                    if action.type is ActionType.REDUCE:
+                        msg += "reduce[" + str(action.reduce_rule) + "]"
+                else:
+                    msg += "None"
+                print(msg)
 
     def test_create_parsing_table(self):
         grammar = self.create_sample_grammar()
