@@ -1,8 +1,5 @@
 import re
 
-
-# TODO: VAR x, w_23='w' AS CHAR(not included uninitialized and initalized in the same assignment statement
-from compiler.symbols.symbol_table import SymbolTable
 from compiler.utils import Utils
 
 
