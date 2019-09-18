@@ -280,7 +280,7 @@ class TestYacc(unittest.TestCase):
         self.assertEqual(yacc.slr1[8]["<F>"], None)
         self.assertEqual(yacc.slr1[8]["<G>"], None)
 
-    def test_create_parse_tree(self):
+    def test_create_parse_tree_for_cfpl(self):
         lexemes = "* my first program in CFPL" + '\n' + \
                   "VAR abc, b, c AS INT" + '\n' + \
                   "VAR x, w_23='w' AS CHAR" + '\n' + \
@@ -295,6 +295,23 @@ class TestYacc(unittest.TestCase):
         yacc.create_parser()
         yacc.create_parsing_table()
         yacc.create_parse_tree()
+
+    def test_convert_to_abstract_syntax_tree_cfpl(self):
+        lexemes = "* my first program in CFPL" + '\n' + \
+                  "VAR abc, b, c AS INT" + '\n' + \
+                  "VAR x, w_23='w' AS CHAR" + '\n' + \
+                  "VAR t=\"TRUE\" AS BOOL" + '\n' + \
+                  "START" + '\n' + \
+                  "     abc=b=10" + '\n' + \
+                  "     w_23='a'" + '\n' + \
+                  "     * this is a comment" + '\n' + \
+                  "     OUTPUT: abc & \"hi\" & b & \"#\" & w_23 & \"[#]\"" + '\n' + \
+                  "STOP" + '\n'
+        yacc = Yacc(Grammar.get_grammar(), lexemes)
+        yacc.create_parser()
+        yacc.create_parsing_table()
+        yacc.create_parse_tree()
+        yacc.convert_parse_tree_to_abstract_syntax_tree()
 
 
 if __name__ == '__main__':

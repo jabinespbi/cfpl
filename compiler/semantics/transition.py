@@ -1,4 +1,5 @@
 class Transition:
     """This is the transition of a state in the parser"""
-    state = None
-    transition_input = None
+    def __init__(self):
+        self.state = None
+        self.transition_input = None

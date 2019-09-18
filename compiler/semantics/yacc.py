@@ -167,7 +167,7 @@ class Yacc:
                     for x in range(rhs_length):
                         stack.pop()
                         child = stack.pop()
-                        parent.children.append(child)
+                        parent.children.insert(0, child)
 
                     action = self.slr1[stack[-1]][reduce_rule[0]]
                     if action.type is not ActionType.GOTO:
@@ -181,9 +181,187 @@ class Yacc:
                     return
         except EOFError:
             print("Found the end of input!")
-            print("Last token: ", self.lexical.lexemes[token_indexes[0]: token_indexes[1]])
+            grammar_symbol = "EoI"
+            while True:
+                action = self.slr1[stack[-1]][grammar_symbol]
+                if action.type is ActionType.ACCEPT:
+                    self.parse_tree = stack[-2]
+                    print("Syntax analysis is complete!")
+                    return
+
+                parent = Tree()
+                reduce_rule = action.reduce_rule
+                parent.root = reduce_rule[0]
+                rhs_length = len(reduce_rule) - 2
+
+                for x in range(rhs_length):
+                    stack.pop()
+                    child = stack.pop()
+                    parent.children.insert(0, child)
+
+                action = self.slr1[stack[-1]][reduce_rule[0]]
+
+                if action.type is not ActionType.GOTO:
+                    raise Exception("Unexpected action type: " + action.type.name + "! Should be GOTO action!")
+
+                stack.append(parent)
+                stack.append(action.next_state)
         except KeyError:
             print("Key is not found in the symbol table! ", self.lexical.lexemes[token_indexes[0]: token_indexes[1]])
+
+    def convert_parse_tree_to_abstract_syntax_tree(self):
+        done = []
+        stack = [self.parse_tree]
+        while len(stack) is not 0:
+            top = stack[-1]
+            if len(top.children) > 0:
+                if top not in done:
+                    for x in range(len(top.children) - 1, -1, -1):
+                        stack.append(top.children[x])
+                        done.append(top)
+                else:
+                    self.process_semantic_rules_for_abstract_syntax_tree(stack.pop())
+            else:
+                stack.pop()
+
+    def process_semantic_rules_for_abstract_syntax_tree(self, tree):
+        rule = [tree.root, "->"]
+        # if tree.root['grammar_symbol'] is not None:
+        #     rule[0] = tree.root['grammar_symbol']
+
+        for child in tree.children:
+            if type(child.root) is dict:
+                if child.root['grammar_symbol'] is not None:
+                    rule.append(child.root['grammar_symbol'])
+                else:
+                    rule.append(child.root['token'])
+            else:
+                rule.append(child.root)
+
+        if rule == ["<CFPL>", "->", "<DL>", "<MB>"]:
+            pass
+        elif rule == ["<CFPL>", "->", "<DL>"]:
+            pass
+        elif rule == ["<CFPL>", "->", "<MB>"]:
+            pass
+        elif rule == ["<DL>", "->", "<D>"]:
+            pass
+        elif rule == ["<DL>", "->", "<D>", "<DL>"]:
+            pass
+        elif rule == ["<D>", "->", "VAR", "<DBL>", "AS", "<DT>", "\n"]:
+            pass
+        elif rule == ["<DBL>", "->", "<DB>"]:
+            pass
+        elif rule == ["<DBL>", "->", "<DB>", ",", "<DBL>"]:
+            pass
+        elif rule == ["<DB>", "->", "<ASS>"]:
+            pass
+        elif rule == ["<DT>", "->", "INT"]:
+            pass
+        elif rule == ["<DT>", "->", "CHAR"]:
+            pass
+        elif rule == ["<DT>", "->", "BOOL"]:
+            pass
+        elif rule == ["<DT>", "->", "FLOAT"]:
+            pass
+        elif rule == ["<MB>", "->", "START", "\n", "<ES>", "STOP"]:
+            pass
+        elif rule == ["<MB>", "->", "START", "\n", "<ES>", "STOP", "\n"]:
+            pass
+        elif rule == ["<ES>", "->", "<E>", "\n"]:
+            pass
+        elif rule == ["<ES>", "->", "<E>", "\n", "<ES>"]:
+            pass
+        elif rule == ["<E>", "->", "ID", "=", "<ASS>"]:
+            pass
+        elif rule == ["<E>", "->", "<OUT>"]:
+            pass
+        elif rule == ["<E>", "->", "<IN>"]:
+            pass
+        elif rule == ["<ASS>", "->", "ID", "=", "<ASS>"]:
+            pass
+        elif rule == ["<ASS>", "->", "<EXP>"]:
+            pass
+        elif rule == ["<EXP>", "->", "<EXP>", "OR", "<EXPA>"]:
+            pass
+        elif rule == ["<EXPA>", "->", "<EXPA>", "AND", "<EXPE>"]:
+            pass
+        elif rule == ["<EXPA>", "->", "<EXPE>"]:
+            pass
+        elif rule == ["<EXPE>", "->", "<EXPE>", "<EQ>", "<EXPR>"]:
+            pass
+        elif rule == ["<EXPE>", "->", "<EXPR>"]:
+            pass
+        elif rule == ["<EQ>", "->", "=="]:
+            pass
+        elif rule == ["<EQ>", "->", "<>"]:
+            pass
+        elif rule == ["<EXPR>", "->", "<EXPR>", "<REL>", "<EXPADD>"]:
+            pass
+        elif rule == ["<EXPR>", "->", "<EXPADD>"]:
+            pass
+        elif rule == ["<REL>", "->", ">"]:
+            pass
+        elif rule == ["<REL>", "->", "<"]:
+            pass
+        elif rule == ["<REL>", "->", ">="]:
+            pass
+        elif rule == ["<REL>", "->", "<="]:
+            pass
+        elif rule == ["<EXPADD>", "->", "<EXPADD>", "<ADD>", "<EXPM>"]:
+            pass
+        elif rule == ["<EXPADD>", "->", "<EXPM>"]:
+            pass
+        elif rule == ["<ADD>", "->", "+"]:
+            pass
+        elif rule == ["<ADD>", "->", "-"]:
+            pass
+        elif rule == ["<ADD>", "->", "&"]:
+            pass
+        elif rule == ["<EXPM>", "->", "<EXPM>", "<MUL>", "<EXPU>"]:
+            pass
+        elif rule == ["<EXPM>", "->", "<EXPU>"]:
+            pass
+        elif rule == ["<MUL>", "->", "*"]:
+            pass
+        elif rule == ["<MUL>", "->", "/"]:
+            pass
+        elif rule == ["<MUL>", "->", "%"]:
+            pass
+        elif rule == ["<EXPU>", "->", "<UNA>", "<EXPU>"]:
+            pass
+        elif rule == ["<EXPU>", "->", "<EXPP>"]:
+            pass
+        elif rule == ["<UNA>", "->", "+"]:
+            pass
+        elif rule == ["<UNA>", "->", "-"]:
+            pass
+        elif rule == ["<UNA>", "->", "NOT"]:
+            pass
+        elif rule == ["<EXPP>", "->", "(", "<EXPP>", ")"]:
+            pass
+        elif rule == ["<EXPP>", "->", "ID"]:
+            pass
+        elif rule == ["<EXPP>", "->", "CLIT"]:
+            pass
+        elif rule == ["<EXPP>", "->", "ILIT"]:
+            pass
+        elif rule == ["<EXPP>", "->", "FLIT"]:
+            pass
+        elif rule == ["<EXPP>", "->", "BLIT"]:
+            pass
+        elif rule == ["<EXPP>", "->", "SLIT"]:
+            pass
+        elif rule == ["<OUT>", "->", "OUTPUT:", "<EXP>"]:
+            pass
+        elif rule == ["<IN>", "->", "INPUT:", "<IDL>"]:
+            pass
+        elif rule == ["<IDL>", "->", "ID"]:
+            pass
+        elif rule == ["<IDL>", "->", "<IDL>", ",", "ID"]:
+            pass
+        else:
+            raise Exception("Something went wrong during converting to AST!")
 
     def add_rules_with_nonterminal_followed_by_dot(self, state):
         """given state with initial rules, add rules to the state for all the current rules

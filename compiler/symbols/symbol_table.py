@@ -1,7 +1,6 @@
 class SymbolTable:
     """"""
     __instance = None
-    unknown_tokens = {}   # tokens such as variables, literals, etc. are not known to grammar
 
     @staticmethod
     def getInstance():
@@ -14,3 +13,4 @@ class SymbolTable:
             raise Exception("This class is a singleton!")
         else:
             SymbolTable.__instance = self
+            self.unknown_tokens = {}   # tokens such as variables, literals, etc. are not known to grammar

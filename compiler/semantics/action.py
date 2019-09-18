@@ -1,4 +1,6 @@
 class Action:
-    type = None
-    next_state = None
-    reduce_rule = None
+
+    def __init__(self):
+        self.type = None
+        self.next_state = None
+        self.reduce_rule = None

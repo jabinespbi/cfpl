@@ -1,4 +1,6 @@
 class Tree:
     """a tree data structure"""
-    root = None
-    children = []
+
+    def __init__(self):
+        self.root = None
+        self.children = []

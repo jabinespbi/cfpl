@@ -77,5 +77,5 @@ class Grammar:
             ["<OUT>", "->", "OUTPUT:", "<EXP>"],
             ["<IN>", "->", "INPUT:", "<IDL>"],
             ["<IDL>", "->", "ID"],
-            ["<IDL>", "->", "ID", ",", "<IDL>"]
+            ["<IDL>", "->", "<IDL>", ",", "ID"]
         ]
