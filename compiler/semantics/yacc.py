@@ -269,20 +269,37 @@ class Yacc:
         elif rule == ["<MB>", "->", "START", "\n", "<ES>", "STOP", "\n"]:
             pass
         elif rule == ["<ES>", "->", "<E>", "\n"]:
-            pass
+            if len(tree.children) is not 2 and len(tree.children[0].children) is not 1:
+                raise Exception("Unexpected case has been found!")
+
+            child = tree.children[0]
+            tree.children.remove(child)
+            tree.children.insert(0, child.children[0])
         elif rule == ["<ES>", "->", "<E>", "\n", "<ES>"]:
-            pass
+            if len(tree.children) is not 3 and len(tree.children[0].children) is not 1:
+                raise Exception("Unexpected case has been found!")
+
+            child = tree.children[0]
+            tree.children.remove(child)
+            tree.children.insert(0, child.children[0])
         elif rule == ["<E>", "->", "ID", "=", "<ASS>"]:
             pass
         elif rule == ["<E>", "->", "<OUT>"]:
-            pass
+            pass    # checked
         elif rule == ["<E>", "->", "<IN>"]:
-            pass
+            if len(tree.children) is not 1 and len(tree.children[0].children) is not 1:
+                raise Exception("Unexpected case has been found!")
+
+            child = tree.children[0]
+            tree.children.clear()
+            tree.children.append(child.children[0])
         elif rule == ["<ASS>", "->", "ID", "=", "<ASS>"]:
             pass
         elif rule == ["<ASS>", "->", "<EXP>"]:
             pass
         elif rule == ["<EXP>", "->", "<EXP>", "OR", "<EXPA>"]:
+            pass
+        elif rule == ["<EXP>", "->", "<EXPA>"]:
             pass
         elif rule == ["<EXPA>", "->", "<EXPA>", "AND", "<EXPE>"]:
             pass
@@ -353,13 +370,13 @@ class Yacc:
         elif rule == ["<EXPP>", "->", "SLIT"]:
             pass
         elif rule == ["<OUT>", "->", "OUTPUT:", "<EXP>"]:
-            pass
-        elif rule == ["<IN>", "->", "INPUT:", "<IDL>"]:
-            pass
-        elif rule == ["<IDL>", "->", "ID"]:
-            pass
+            pass    # checked
+        elif rule == ["<IN>", "->", "<IDL>"]:
+            pass    # checked
+        elif rule == ["<IDL>", "->", "INPUT:", "ID"]:
+            pass    # checked
         elif rule == ["<IDL>", "->", "<IDL>", ",", "ID"]:
-            pass
+            pass    # checked
         else:
             raise Exception("Something went wrong during converting to AST!")
 
