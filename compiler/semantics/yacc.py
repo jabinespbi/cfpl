@@ -238,144 +238,144 @@ class Yacc:
             else:
                 rule.append(child.root)
 
-        if rule == ["<CFPL>", "->", "<DL>", "<MB>"]:
+        if rule == ["<cfpl>", "->", "<declaration-list>", "<main-block>"]:
             pass
-        elif rule == ["<CFPL>", "->", "<DL>"]:
+        elif rule == ["<cfpl>", "->", "<declaration-list>"]:
             pass
-        elif rule == ["<CFPL>", "->", "<MB>"]:
+        elif rule == ["<cfpl>", "->", "<main-block>"]:
             pass
-        elif rule == ["<DL>", "->", "<D>"]:
+        elif rule == ["<declaration-list>", "->", "<declaration>"]:
             pass
-        elif rule == ["<DL>", "->", "<D>", "<DL>"]:
+        elif rule == ["<declaration-list>", "->", "<declaration>", "<declaration-list>"]:
             pass
-        elif rule == ["<D>", "->", "VAR", "<DBL>", "AS", "<DT>", "\n"]:
+        elif rule == ["<declaration>", "->", "VAR", "<declaration-block-list>", "AS", "<data-type>", "\n"]:
             pass
-        elif rule == ["<DBL>", "->", "<DB>"]:
+        elif rule == ["<declaration-block-list>", "->", "<declaration-block>"]:
             pass
-        elif rule == ["<DBL>", "->", "<DB>", ",", "<DBL>"]:
+        elif rule == ["<declaration-block-list>", "->", "<declaration-block>", ",", "<declaration-block-list>"]:
             pass
-        elif rule == ["<DB>", "->", "<ASS>"]:
+        elif rule == ["<declaration-block>", "->", "<assignment>"]:
             pass
-        elif rule == ["<DT>", "->", "INT"]:
+        elif rule == ["<data-type>", "->", "INT"]:
             pass
-        elif rule == ["<DT>", "->", "CHAR"]:
+        elif rule == ["<data-type>", "->", "CHAR"]:
             pass
-        elif rule == ["<DT>", "->", "BOOL"]:
+        elif rule == ["<data-type>", "->", "BOOL"]:
             pass
-        elif rule == ["<DT>", "->", "FLOAT"]:
+        elif rule == ["<data-type>", "->", "FLOAT"]:
             pass
-        elif rule == ["<MB>", "->", "START", "\n", "<ES>", "STOP"]:
+        elif rule == ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP"]:
             pass
-        elif rule == ["<MB>", "->", "START", "\n", "<ES>", "STOP", "\n"]:
+        elif rule == ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP", "\n"]:
             pass
-        elif rule == ["<ES>", "->", "<E>", "\n"]:
+        elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "\n"]:
             if len(tree.children) is not 2 and len(tree.children[0].children) is not 1:
                 raise Exception("Unexpected case has been found!")
 
             child = tree.children[0]
             tree.children.remove(child)
             tree.children.insert(0, child.children[0])
-        elif rule == ["<ES>", "->", "<E>", "\n", "<ES>"]:
+        elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "\n", "<executable-statement-list>"]:
             if len(tree.children) is not 3 and len(tree.children[0].children) is not 1:
                 raise Exception("Unexpected case has been found!")
 
             child = tree.children[0]
             tree.children.remove(child)
             tree.children.insert(0, child.children[0])
-        elif rule == ["<E>", "->", "ID", "=", "<ASS>"]:
+        elif rule == ["<executable-statement>", "->", "ID", "=", "<assignment>"]:
             pass
-        elif rule == ["<E>", "->", "<OUT>"]:
+        elif rule == ["<executable-statement>", "->", "<output>"]:
             pass    # checked
-        elif rule == ["<E>", "->", "<IN>"]:
+        elif rule == ["<executable-statement>", "->", "<input>"]:
             if len(tree.children) is not 1 and len(tree.children[0].children) is not 1:
                 raise Exception("Unexpected case has been found!")
 
             child = tree.children[0]
             tree.children.clear()
             tree.children.append(child.children[0])
-        elif rule == ["<ASS>", "->", "ID", "=", "<ASS>"]:
+        elif rule == ["<assignment>", "->", "ID", "=", "<assignment>"]:
             pass
-        elif rule == ["<ASS>", "->", "<EXP>"]:
+        elif rule == ["<assignment>", "->", "<or-expression>"]:
             pass
-        elif rule == ["<EXP>", "->", "<EXP>", "OR", "<EXPA>"]:
+        elif rule == ["<or-expression>", "->", "<or-expression>", "OR", "<and-expression>"]:
             pass
-        elif rule == ["<EXP>", "->", "<EXPA>"]:
+        elif rule == ["<or-expression>", "->", "<and-expression>"]:
             pass
-        elif rule == ["<EXPA>", "->", "<EXPA>", "AND", "<EXPE>"]:
+        elif rule == ["<and-expression>", "->", "<and-expression>", "AND", "<equality-expression>"]:
             pass
-        elif rule == ["<EXPA>", "->", "<EXPE>"]:
+        elif rule == ["<and-expression>", "->", "<equality-expression>"]:
             pass
-        elif rule == ["<EXPE>", "->", "<EXPE>", "<EQ>", "<EXPR>"]:
+        elif rule == ["<equality-expression>", "->", "<equality-expression>", "<equality-operator>", "<relational-expression>"]:
             pass
-        elif rule == ["<EXPE>", "->", "<EXPR>"]:
+        elif rule == ["<equality-expression>", "->", "<relational-expression>"]:
             pass
-        elif rule == ["<EQ>", "->", "=="]:
+        elif rule == ["<equality-operator>", "->", "=="]:
             pass
-        elif rule == ["<EQ>", "->", "<>"]:
+        elif rule == ["<equality-operator>", "->", "<>"]:
             pass
-        elif rule == ["<EXPR>", "->", "<EXPR>", "<REL>", "<EXPADD>"]:
+        elif rule == ["<relational-expression>", "->", "<relational-expression>", "<relational-operator>", "<additive-expression>"]:
             pass
-        elif rule == ["<EXPR>", "->", "<EXPADD>"]:
+        elif rule == ["<relational-expression>", "->", "<additive-expression>"]:
             pass
-        elif rule == ["<REL>", "->", ">"]:
+        elif rule == ["<relational-operator>", "->", ">"]:
             pass
-        elif rule == ["<REL>", "->", "<"]:
+        elif rule == ["<relational-operator>", "->", "<"]:
             pass
-        elif rule == ["<REL>", "->", ">="]:
+        elif rule == ["<relational-operator>", "->", ">="]:
             pass
-        elif rule == ["<REL>", "->", "<="]:
+        elif rule == ["<relational-operator>", "->", "<="]:
             pass
-        elif rule == ["<EXPADD>", "->", "<EXPADD>", "<ADD>", "<EXPM>"]:
+        elif rule == ["<additive-expression>", "->", "<additive-expression>", "<additive-operator>", "<multiplicative-expression>"]:
             pass
-        elif rule == ["<EXPADD>", "->", "<EXPM>"]:
+        elif rule == ["<additive-expression>", "->", "<multiplicative-expression>"]:
             pass
-        elif rule == ["<ADD>", "->", "+"]:
+        elif rule == ["<additive-operator>", "->", "+"]:
             pass
-        elif rule == ["<ADD>", "->", "-"]:
+        elif rule == ["<additive-operator>", "->", "-"]:
             pass
-        elif rule == ["<ADD>", "->", "&"]:
+        elif rule == ["<additive-operator>", "->", "&"]:
             pass
-        elif rule == ["<EXPM>", "->", "<EXPM>", "<MUL>", "<EXPU>"]:
+        elif rule == ["<multiplicative-expression>", "->", "<multiplicative-expression>", "<multiplicative-operator>", "<unary-expression>"]:
             pass
-        elif rule == ["<EXPM>", "->", "<EXPU>"]:
+        elif rule == ["<multiplicative-expression>", "->", "<unary-expression>"]:
             pass
-        elif rule == ["<MUL>", "->", "*"]:
+        elif rule == ["<multiplicative-operator>", "->", "*"]:
             pass
-        elif rule == ["<MUL>", "->", "/"]:
+        elif rule == ["<multiplicative-operator>", "->", "/"]:
             pass
-        elif rule == ["<MUL>", "->", "%"]:
+        elif rule == ["<multiplicative-operator>", "->", "%"]:
             pass
-        elif rule == ["<EXPU>", "->", "<UNA>", "<EXPU>"]:
+        elif rule == ["<unary-expression>", "->", "<unary-operator>", "<unary-expression>"]:
             pass
-        elif rule == ["<EXPU>", "->", "<EXPP>"]:
+        elif rule == ["<unary-expression>", "->", "<parenthesis-expression>"]:
             pass
-        elif rule == ["<UNA>", "->", "+"]:
+        elif rule == ["<unary-operator>", "->", "+"]:
             pass
-        elif rule == ["<UNA>", "->", "-"]:
+        elif rule == ["<unary-operator>", "->", "-"]:
             pass
-        elif rule == ["<UNA>", "->", "NOT"]:
+        elif rule == ["<unary-operator>", "->", "NOT"]:
             pass
-        elif rule == ["<EXPP>", "->", "(", "<EXPP>", ")"]:
+        elif rule == ["<parenthesis-expression>", "->", "(", "<or-expression>", ")"]:
             pass
-        elif rule == ["<EXPP>", "->", "ID"]:
+        elif rule == ["<parenthesis-expression>", "->", "ID"]:
             pass
-        elif rule == ["<EXPP>", "->", "CLIT"]:
+        elif rule == ["<parenthesis-expression>", "->", "CLIT"]:
             pass
-        elif rule == ["<EXPP>", "->", "ILIT"]:
+        elif rule == ["<parenthesis-expression>", "->", "ILIT"]:
             pass
-        elif rule == ["<EXPP>", "->", "FLIT"]:
+        elif rule == ["<parenthesis-expression>", "->", "FLIT"]:
             pass
-        elif rule == ["<EXPP>", "->", "BLIT"]:
+        elif rule == ["<parenthesis-expression>", "->", "BLIT"]:
             pass
-        elif rule == ["<EXPP>", "->", "SLIT"]:
+        elif rule == ["<parenthesis-expression>", "->", "SLIT"]:
             pass
-        elif rule == ["<OUT>", "->", "OUTPUT:", "<EXP>"]:
+        elif rule == ["<output>", "->", "OUTPUT:", "<or-expression>"]:
             pass    # checked
-        elif rule == ["<IN>", "->", "<IDL>"]:
+        elif rule == ["<input>", "->", "INPUT:", "<id-list>"]:
             pass    # checked
-        elif rule == ["<IDL>", "->", "INPUT:", "ID"]:
+        elif rule == ["<id-list>", "->", "ID"]:
             pass    # checked
-        elif rule == ["<IDL>", "->", "<IDL>", ",", "ID"]:
+        elif rule == ["<id-list>", "->", "<id-list>", ",", "ID"]:
             pass    # checked
         else:
             raise Exception("Something went wrong during converting to AST!")
