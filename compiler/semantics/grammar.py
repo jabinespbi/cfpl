@@ -19,6 +19,7 @@ class Grammar:
             ["<cfpl>", "->", "<declaration-list>", "<main-block>"],
             ["<cfpl>", "->", "<declaration-list>"],
             ["<cfpl>", "->", "<main-block>"],
+
             ["<declaration-list>", "->", "<declaration>"],
             ["<declaration-list>", "->", "<declaration>", "<declaration-list>"],
             ["<declaration>", "->", "VAR", "<declaration-block-list>", "AS", "<data-type>", "\n"],

@@ -239,7 +239,13 @@ class Yacc:
                 rule.append(child.root)
 
         if rule == ["<cfpl>", "->", "<declaration-list>", "<main-block>"]:
-            pass
+            if len(tree.children) is not 2:
+                if len(tree.children[0].children) is not 1 or len(tree.children[0].children) is not 2:
+                    raise Exception("Unexpected case has been found!")
+
+            child = tree.children[0]
+            tree.children.remove(child)
+            tree.children.insert(3, child.children[0])
         elif rule == ["<cfpl>", "->", "<declaration-list>"]:
             pass
         elif rule == ["<cfpl>", "->", "<main-block>"]:
@@ -249,7 +255,12 @@ class Yacc:
         elif rule == ["<declaration-list>", "->", "<declaration>", "<declaration-list>"]:
             pass
         elif rule == ["<declaration>", "->", "VAR", "<declaration-block-list>", "AS", "<data-type>", "\n"]:
-            pass
+            if len(tree.children) is not 5 and len(tree.children[3].children) is not 1:
+                raise Exception("Unexpected case has been found!")
+
+            child = tree.children[3]
+            tree.children.remove(child)
+            tree.children.insert(3, child.children[0])
         elif rule == ["<declaration-block-list>", "->", "<declaration-block>"]:
             pass
         elif rule == ["<declaration-block-list>", "->", "<declaration-block>", ",", "<declaration-block-list>"]:
@@ -306,7 +317,12 @@ class Yacc:
         elif rule == ["<and-expression>", "->", "<equality-expression>"]:
             pass
         elif rule == ["<equality-expression>", "->", "<equality-expression>", "<equality-operator>", "<relational-expression>"]:
-            pass
+            if len(tree.children) is not 3 and len(tree.children[1].children) is not 1:
+                raise Exception("Unexpected case has been found!")
+
+            child = tree.children[1]
+            tree.children.remove(child)
+            tree.children.insert(1, child.children[0])
         elif rule == ["<equality-expression>", "->", "<relational-expression>"]:
             pass
         elif rule == ["<equality-operator>", "->", "=="]:
@@ -314,7 +330,12 @@ class Yacc:
         elif rule == ["<equality-operator>", "->", "<>"]:
             pass
         elif rule == ["<relational-expression>", "->", "<relational-expression>", "<relational-operator>", "<additive-expression>"]:
-            pass
+            if len(tree.children) is not 3 and len(tree.children[1].children) is not 1:
+                raise Exception("Unexpected case has been found!")
+
+            child = tree.children[1]
+            tree.children.remove(child)
+            tree.children.insert(1, child.children[0])
         elif rule == ["<relational-expression>", "->", "<additive-expression>"]:
             pass
         elif rule == ["<relational-operator>", "->", ">"]:
@@ -326,7 +347,12 @@ class Yacc:
         elif rule == ["<relational-operator>", "->", "<="]:
             pass
         elif rule == ["<additive-expression>", "->", "<additive-expression>", "<additive-operator>", "<multiplicative-expression>"]:
-            pass
+            if len(tree.children) is not 3 and len(tree.children[1].children) is not 1:
+                raise Exception("Unexpected case has been found!")
+
+            child = tree.children[1]
+            tree.children.remove(child)
+            tree.children.insert(1, child.children[0])
         elif rule == ["<additive-expression>", "->", "<multiplicative-expression>"]:
             pass
         elif rule == ["<additive-operator>", "->", "+"]:
@@ -336,7 +362,12 @@ class Yacc:
         elif rule == ["<additive-operator>", "->", "&"]:
             pass
         elif rule == ["<multiplicative-expression>", "->", "<multiplicative-expression>", "<multiplicative-operator>", "<unary-expression>"]:
-            pass
+            if len(tree.children) is not 3 and len(tree.children[1].children) is not 1:
+                raise Exception("Unexpected case has been found!")
+
+            child = tree.children[1]
+            tree.children.remove(child)
+            tree.children.insert(1, child.children[0])
         elif rule == ["<multiplicative-expression>", "->", "<unary-expression>"]:
             pass
         elif rule == ["<multiplicative-operator>", "->", "*"]:
@@ -346,7 +377,12 @@ class Yacc:
         elif rule == ["<multiplicative-operator>", "->", "%"]:
             pass
         elif rule == ["<unary-expression>", "->", "<unary-operator>", "<unary-expression>"]:
-            pass
+            if len(tree.children) is not 2 and len(tree.children[0].children) is not 1:
+                raise Exception("Unexpected case has been found!")
+
+            child = tree.children[0]
+            tree.children.remove(child)
+            tree.children.append(child.children[0])
         elif rule == ["<unary-expression>", "->", "<parenthesis-expression>"]:
             pass
         elif rule == ["<unary-operator>", "->", "+"]:
