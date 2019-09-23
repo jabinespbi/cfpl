@@ -165,7 +165,7 @@ class TestYacc(unittest.TestCase):
             for rule in state.rules:
                 print(rule)
 
-    # @unittest.skip("prints a long message")
+    @unittest.skip("prints a long message")
     def test_create_parsing_table_for_cflp(self):
         yacc = Yacc(Grammar.get_grammar(), "")
         yacc.create_parser()
@@ -307,6 +307,17 @@ class TestYacc(unittest.TestCase):
                   "     * this is a comment" + '\n' + \
                   "     OUTPUT: abc & \"hi\" & b & \"#\" & w_23 & \"[#]\"" + '\n' + \
                   "STOP" + '\n'
+        yacc = Yacc(Grammar.get_grammar(), lexemes)
+        yacc.create_parser()
+        yacc.create_parsing_table()
+        yacc.create_parse_tree()
+        yacc.convert_parse_tree_to_abstract_syntax_tree()
+        print()
+
+    @unittest.skip("just a long message, manual testing")
+    def test_traversal_of_convert_to_abstract_syntax_tree(self):
+        lexemes = "* my first program in CFPL" + '\n' + \
+                  "VAR abc, b, c AS INT" + '\n'
         yacc = Yacc(Grammar.get_grammar(), lexemes)
         yacc.create_parser()
         yacc.create_parsing_table()

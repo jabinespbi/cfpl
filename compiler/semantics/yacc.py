@@ -31,6 +31,7 @@ class Yacc:
         self.parser_states = []
         self.slr1 = {}
         self.parse_tree = None
+        self.ast = None
 
     def create_parser(self):
         # create first state
@@ -152,7 +153,7 @@ class Yacc:
 
                 if action.type is ActionType.SHIFT:
                     node = Tree()
-                    node.root = symbol
+                    node.value = symbol
                     stack.append(node)
                     stack.append(action.next_state)
                     token_indexes = self.lexical.next()
@@ -161,7 +162,7 @@ class Yacc:
                 elif action.type is ActionType.REDUCE:
                     parent = Tree()
                     reduce_rule = action.reduce_rule
-                    parent.root = reduce_rule[0]
+                    parent.value = reduce_rule[0]
                     rhs_length = len(reduce_rule) - 2
 
                     for x in range(rhs_length):
@@ -191,7 +192,7 @@ class Yacc:
 
                 parent = Tree()
                 reduce_rule = action.reduce_rule
-                parent.root = reduce_rule[0]
+                parent.value = reduce_rule[0]
                 rhs_length = len(reduce_rule) - 2
 
                 for x in range(rhs_length):
@@ -210,405 +211,210 @@ class Yacc:
             print("Key is not found in the symbol table! ", self.lexical.lexemes[token_indexes[0]: token_indexes[1]])
 
     def convert_parse_tree_to_abstract_syntax_tree(self):
+        """Convert parse tree to abstract syntax tree using depth first, left to right traversal."""
+        self.ast = self.parse_tree.copy()
+
         done = []
         stack = [self.parse_tree]
+        ast_stack = [self.ast]
         while len(stack) is not 0:
             top = stack[-1]
+            ast_top = ast_stack[-1]
             if len(top.children) > 0:
                 if top not in done:
                     for x in range(len(top.children) - 1, -1, -1):
                         stack.append(top.children[x])
+                        ast_stack.append(ast_top.children[x])
                         done.append(top)
                 else:
-                    self.process_semantic_rules_for_abstract_syntax_tree(stack.pop())
+                    self.process_semantic_rules_for_abstract_syntax_tree(stack.pop(), ast_stack.pop())
             else:
                 stack.pop()
+                ast_stack.pop()
 
-    def process_semantic_rules_for_abstract_syntax_tree(self, tree):
-        rule = [tree.root, "->"]
-        # if tree.root['grammar_symbol'] is not None:
-        #     rule[0] = tree.root['grammar_symbol']
+    def process_semantic_rules_for_abstract_syntax_tree(self, parse_tree, ast):
+        """Note: this process will not mutate the parse_tree and the ast will not reference the
+        contents of the parse_tree. the parse_tree is only included to know the rule."""
+        rule = [parse_tree.value, "->"]
+        # if tree.value['grammar_symbol'] is not None:
+        #     rule[0] = tree.value['grammar_symbol']
 
-        for child in tree.children:
-            if type(child.root) is dict:
-                if child.root['grammar_symbol'] is not None:
-                    rule.append(child.root['grammar_symbol'])
+        for child in parse_tree.children:
+            if type(child.value) is dict:
+                if child.value['grammar_symbol'] is not None:
+                    rule.append(child.value['grammar_symbol'])
                 else:
-                    rule.append(child.root['token'])
+                    rule.append(child.value['token'])
             else:
-                rule.append(child.root)
+                rule.append(child.value)
 
         if rule == ["<cfpl>", "->", "<declaration-list>", "<main-block>"]:
-            pass
+            children = ast.children[0].children
+            children.extend(ast.children[1].children)
+            ast.children = children
         elif rule == ["<cfpl>", "->", "<declaration-list>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = [tree.children.pop(0).root]
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
         elif rule == ["<cfpl>", "->", "<main-block>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = [tree.children.pop(0).root]
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
         elif rule == ["<declaration-list>", "->", "<declaration>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = [tree.children.pop(0).root]
+            pass
         elif rule == ["<declaration-list>", "->", "<declaration>", "<declaration-list>"]:
-            if len(tree.children) is not 2:
-                raise Exception("Unexpected case has been found!")
-
-            declaration_list = tree.children.pop(0).root
-            declaration_list.append(tree.children[1].root)
-            tree.root = declaration_list
-            tree.children.clear()
+            executable_statement_list = ast.children[1].children
+            ast.children.pop(1)
+            ast.children.extend(executable_statement_list)
+            print()
         elif rule == ["<declaration>", "->", "VAR", "<declaration-block-list>", "AS", "<data-type>", "\n"]:
-            if len(tree.children) is not 5 and len(tree.children[3].children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            child = tree.children[3]
-            tree.children.remove(child)
-            tree.children.insert(3, child.children[0])
+            ast.value = "DECLARE"
+            children = ast.children[1].children
+            children.append(ast.children[3])
+            ast.children = children
+            print()
         elif rule == ["<declaration-block-list>", "->", "<declaration-block>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = [tree.children.pop(0).root]
+            pass
         elif rule == ["<declaration-block-list>", "->", "<declaration-block>", ",", "<declaration-block-list>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            declaration_block_list = tree.children.pop(0).root
-            declaration_block_list.append(tree.children[2].root)
-            tree.root = declaration_block_list
-            tree.children.clear()
+            executable_statement_list = ast.children[2].children
+            ast.children.pop(1)
+            ast.children.pop(1)
+            ast.children.extend(executable_statement_list)
+            print()
         elif rule == ["<declaration-block>", "->", "ID", "=", "<assignment>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = "="
-        elif rule == ["<declaration-block>", "->", "ID"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<data-type>", "->", "INT"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<data-type>", "->", "CHAR"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<data-type>", "->", "BOOL"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<data-type>", "->", "FLOAT"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
+            ast.value = ast.children[1].value
+            ast.children.pop(1)
+            print()
+        elif rule == ["<declaration-block>", "->", "ID"] or \
+                rule == ["<data-type>", "->", "INT"] or \
+                rule == ["<data-type>", "->", "CHAR"] or \
+                rule == ["<data-type>", "->", "BOOL"] or \
+                rule == ["<data-type>", "->", "FLOAT"]:
+            ast.value = ast.children[0].value
+            ast.children.clear()
         elif rule == ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP"]:
-            if len(tree.children) is not 5:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[2].root
-            tree.children.clear()
+            ast.children = ast.children[2].children
         elif rule == ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP", "\n"]:
-            if len(tree.children) is not 5:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[2].root
-            tree.children.clear()
+            ast.children = ast.children[2].children
         elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "\n"]:
-            if len(tree.children) is not 2:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = [tree.children.pop(0).root]
-            tree.children.clear()
-        elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "\n", "<executable-statement-list>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            id_list = tree.children.pop(0).root
-            id_list = id_list.append(tree.children[2].root)
-            tree.root = id_list
-            tree.children.clear()
+            ast.children.pop(1)
+        elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "\n",
+                      "<executable-statement-list>"]:
+            executable_statement_list = ast.children[1].children
+            ast.children.pop(1)
+            ast.children.pop(1)
+            ast.children.extend(executable_statement_list)
         elif rule == ["<executable-statement>", "->", "ID", "=", "<assignment>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children.pop(0).root
-            tree.children.clear()
+            ast.value = ast.children[1].value
+            ast.children.pop(1)
         elif rule == ["<executable-statement>", "->", "<output>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children.pop(0).root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
         elif rule == ["<executable-statement>", "->", "<input>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children.pop(0).root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
         elif rule == ["<assignment>", "->", "ID", "=", "<assignment>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children.pop(0).root
-            tree.children.clear()
+            ast.value = ast.children[1].value
+            ast.children.pop(1)
         elif rule == ["<assignment>", "->", "<or-expression>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
         elif rule == ["<or-expression>", "->", "<or-expression>", "OR", "<and-expression>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children.pop(1).root
-            tree.children.clear()
+            ast.value = ast.children[1].value
+            ast.children.pop(1)
         elif rule == ["<or-expression>", "->", "<and-expression>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
         elif rule == ["<and-expression>", "->", "<and-expression>", "AND", "<equality-expression>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children.pop(1).root
-            tree.children.clear()
+            ast.value = ast.children[1].value
+            ast.children.pop(1)
         elif rule == ["<and-expression>", "->", "<equality-expression>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<equality-expression>", "->", "<equality-expression>", "<equality-operator>", "<relational-expression>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children.pop(1).root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
+        elif rule == ["<equality-expression>", "->", "<equality-expression>", "<equality-operator>",
+                      "<relational-expression>"]:
+            ast.value = ast.children[1].value
+            ast.children.pop(1)
         elif rule == ["<equality-expression>", "->", "<relational-expression>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<equality-operator>", "->", "=="]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<equality-operator>", "->", "<>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<relational-expression>", "->", "<relational-expression>", "<relational-operator>", "<additive-expression>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children.pop(1).root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
+        elif rule == ["<equality-operator>", "->", "=="] or \
+                rule == ["<equality-operator>", "->", "<>"]:
+            ast.value = ast.children[0].value
+            ast.children.clear()
+        elif rule == ["<relational-expression>", "->", "<relational-expression>", "<relational-operator>",
+                      "<additive-expression>"]:
+            ast.value = ast.children[1].value
+            ast.children.pop(1)
         elif rule == ["<relational-expression>", "->", "<additive-expression>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<relational-operator>", "->", ">"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<relational-operator>", "->", "<"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<relational-operator>", "->", ">="]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<relational-operator>", "->", "<="]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<additive-expression>", "->", "<additive-expression>", "<additive-operator>", "<multiplicative-expression>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children.pop(1).root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
+        elif rule == ["<relational-operator>", "->", ">"] or \
+                rule == ["<relational-operator>", "->", "<"] or \
+                rule == ["<relational-operator>", "->", ">="] or \
+                rule == ["<relational-operator>", "->", "<="]:
+            ast.value = ast.children[0].value
+            ast.children.clear()
+        elif rule == ["<additive-expression>", "->", "<additive-expression>", "<additive-operator>",
+                      "<multiplicative-expression>"]:
+            ast.value = ast.children[1].value
+            ast.children.pop(1)
         elif rule == ["<additive-expression>", "->", "<multiplicative-expression>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<additive-operator>", "->", "+"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<additive-operator>", "->", "-"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<additive-operator>", "->", "&"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<multiplicative-expression>", "->", "<multiplicative-expression>", "<multiplicative-operator>", "<unary-expression>"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children.pop(1).root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
+        elif rule == ["<additive-operator>", "->", "+"] or \
+                rule == ["<additive-operator>", "->", "-"] or \
+                rule == ["<additive-operator>", "->", "&"]:
+            ast.value = ast.children[0].value
+            ast.children.clear()
+        elif rule == ["<multiplicative-expression>", "->", "<multiplicative-expression>", "<multiplicative-operator>",
+                      "<unary-expression>"]:
+            ast.value = ast.children[1].value
+            ast.children.pop(1)
         elif rule == ["<multiplicative-expression>", "->", "<unary-expression>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<multiplicative-operator>", "->", "*"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<multiplicative-operator>", "->", "/"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<multiplicative-operator>", "->", "%"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
+        elif rule == ["<multiplicative-operator>", "->", "*"] or \
+                rule == ["<multiplicative-operator>", "->", "/"] or \
+                rule == ["<multiplicative-operator>", "->", "%"]:
+            ast.value = ast.children[0].value
+            ast.children.clear()
         elif rule == ["<unary-expression>", "->", "<unary-operator>", "<unary-expression>"]:
-            if len(tree.children) is not 2:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children.pop(0)
         elif rule == ["<unary-expression>", "->", "<parenthesis-expression>"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-            tree.root = tree.children[0].root
-            tree.children.clear()
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
         elif rule == ["<unary-operator>", "->", "+"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-            tree.root = "UNARY-PLUS"
-            tree.children.clear()
+            ast.value = "UNARY-PLUS"
+            ast.children.clear()
         elif rule == ["<unary-operator>", "->", "-"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-            tree.root = "UNARY-MINUS"
-            tree.children.clear()
+            ast.value = "UNARY-MINUS"
+            ast.children.clear()
         elif rule == ["<unary-operator>", "->", "NOT"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-            tree.root = "NOT"
-            tree.children.clear()
+            ast.value = "NOT"
+            ast.children.clear()
         elif rule == ["<parenthesis-expression>", "->", "(", "<or-expression>", ")"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-            tree.root = tree.children[1].root
-            tree.children = tree.children[1].children
-            tree.children.clear()
-        elif rule == ["<parenthesis-expression>", "->", "ID"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<parenthesis-expression>", "->", "CLIT"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<parenthesis-expression>", "->", "ILIT"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<parenthesis-expression>", "->", "FLIT"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<parenthesis-expression>", "->", "BLIT"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<parenthesis-expression>", "->", "SLIT"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = tree.children[0].root
-            tree.children.clear()
-        elif rule == ["<output>", "->", "OUTPUT:", "<or-expression>"]:                      # come back here
-                raise Exception("Unexpected case has been found!")
+            ast.value = ast.children[1].value
+            ast.children = ast.children[1].children
+        elif rule == ["<parenthesis-expression>", "->", "ID"] or \
+                rule == ["<parenthesis-expression>", "->", "CLIT"] or \
+                rule == ["<parenthesis-expression>", "->", "ILIT"] or \
+                rule == ["<parenthesis-expression>", "->", "FLIT"] or \
+                rule == ["<parenthesis-expression>", "->", "BLIT"] or \
+                rule == ["<parenthesis-expression>", "->", "SLIT"]:
+            ast.value = ast.children[0].value
+            ast.children.clear()
+        elif rule == ["<output>", "->", "OUTPUT:", "<or-expression>"]:
+            ast.value = "OUTPUT"
+            ast.children = ast.children[1]
         elif rule == ["<input>", "->", "INPUT:", "<id-list>"]:
-            if len(tree.children) is not 2:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = "INPUT"
-            tree.children = tree.children[1]
-            tree.children.clear()
+            ast.value = "INPUT"
+            ast.children = ast.children[1].children
         elif rule == ["<id-list>", "->", "ID"]:
-            if len(tree.children) is not 1:
-                raise Exception("Unexpected case has been found!")
-
-            tree.root = [tree.children[0].root]
-            tree.children.clear()
+            pass  # ignore
         elif rule == ["<id-list>", "->", "<id-list>", ",", "ID"]:
-            if len(tree.children) is not 3:
-                raise Exception("Unexpected case has been found!")
-
-            id_list = tree.children[0].root
-            id_list.append(tree.children.pop(2))
-            tree.root = id_list
-            tree.children.clear()
+            id_list = ast.children[0].children
+            id_list.append(ast.children[1])
+            ast.children = [id_list]
         else:
             raise Exception("Something went wrong during converting to AST! Found an unexpected production rule.")
 
