@@ -1,3 +1,4 @@
+from compiler.error_handler.error_handler import ErrorHandler
 from compiler.symbols.symbol_table import SymbolTable
 
 
@@ -41,12 +42,17 @@ class Semantics:
         elif tree.value == "OUTPUT":
             pass
         elif tree.value == "INPUT":
-            pass
+            for child in tree.children:
+                if child.value['token'] not in SymbolTable.getInstance().symbol_table:
+                    ErrorHandler.getInstance().errors.append("Cannot resolve symbol ", child.value['token'], "!")
         elif tree.value == "=":
             grammar_symbol = tree.children[1].value['grammar_symbol']
             if grammar_symbol is "ID":
                 if tree.children[1].value['token'] not in SymbolTable.getInstance().symbol_table:
                     print("Cannot resolve symbol ", tree.children[1].value['token'], "!")
+                if tree.children[1].value['type'] is None:
+                    print("Unexpected no type for token ", tree.children[1].value['token'], "!")
+                tree.children[0].value['type'] = tree.children[1].value['type']
             elif grammar_symbol is "CLIT":
                 tree.children[0].value['type'] = "CHAR"
             elif grammar_symbol is "ILIT":
@@ -59,36 +65,76 @@ class Semantics:
                 print("Incompatible types ", tree.children[0].value['token'], "!")
             tree.value = tree.children[0].value
             tree.children.clear()
-        elif tree.value == "OR":
-            pass
-        elif tree.value == "AND":
-            pass
-        elif tree.value == "==":
-            pass
-        elif tree.value == "<>":
-            pass
-        elif tree.value == ">":
-            pass
-        elif tree.value == "<":
-            pass
-        elif tree.value == ">=":
-            pass
-        elif tree.value == "<=":
-            pass
+        elif tree.value == "OR" or \
+                tree.value == "AND" or \
+                tree.value == "==" or \
+                tree.value == "<>" or \
+                tree.value == ">" or \
+                tree.value == "<" or \
+                tree.value == ">=" or \
+                tree.value == "<=":
+            Semantics.process_semantic_boolean_expression(tree)
         elif tree.value == "&":
-            pass
+            Semantics.process_semantic_string_expression(tree)
         elif tree.value == "+" or \
                 tree.value == "-" or \
                 tree.value == "*" or \
                 tree.value == "/" or \
                 tree.value == "%":
             Semantics.process_semantic_math_expression(tree)
-        elif tree.value == "UNARY-MINUS":
-            pass
-        elif tree.value == "UNARY-PLUS":
-            pass
+        elif tree.value == "UNARY-MINUS" or \
+                tree.value == "UNARY-PLUS":
+            if tree.children[0].value['grammar_symbol'] == "ID":
+                if tree.children[0].value['token'] in SymbolTable.getInstance().symbol_table:
+                    if tree.children[0].value['type'] != "INT":
+                        print("Operator ", tree.value, " cannot be applied to not ", tree.children[0].value['type'],
+                              " type!")
+                    else:
+                        tree.value = {
+                            "uid": None,
+                            "token": None,
+                            "grammar_symbol": "ILIT",
+                            "type": None,
+                            "value": None
+                        }
+                else:
+                    print("Cannot resolve symbol ", tree.children[0].value['token'], "!")
+            elif tree.children[0].value['grammar_symbol'] == "ILIT":
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "ILIT",
+                    "type": None,
+                    "value": None
+                }
+            else:
+                print("Operator ", tree.value, " cannot be applied to not INT type!")
         elif tree.value == "NOT":
-            pass
+            if tree.children[0].value['grammar_symbol'] == "ID":
+                if tree.children[0].value['token'] in SymbolTable.getInstance().symbol_table:
+                    if tree.children[0].value['type'] != "BOOL":
+                        print("Operator ", tree.value, " cannot be applied to not ", tree.children[0].value['type'],
+                              " type!")
+                    else:
+                        tree.value = {
+                            "uid": None,
+                            "token": None,
+                            "grammar_symbol": "BLIT",
+                            "type": None,
+                            "value": None
+                        }
+                else:
+                    print("Cannot resolve symbol ", tree.children[0].value['token'], "!")
+            elif tree.children[0].value['grammar_symbol'] == "BLIT":
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "BLIT",
+                    "type": None,
+                    "value": None
+                }
+            else:
+                print("Operator ", tree.value, " cannot be applied to not BOOL type!")
         else:
             raise Exception("Couldn't find the semantic rules of the ast node value ", tree.value, "!",
                             " Maybe it should be included or not?")
@@ -99,7 +145,13 @@ class Semantics:
         operand2 = tree.children[1]
         if operand1.value['grammar_symbol'] == "ILIT" and \
                 operand2.value['grammar_symbol'] == "ILIT":
-            Semantics.process_semantic_math_expression_reduce(tree)
+            tree.value = {
+                "uid": None,
+                "token": None,
+                "grammar_symbol": "ILIT",
+                "type": None,
+                "value": None
+            }
         elif operand1.value['grammar_symbol'] == "ID" and \
                 operand2.value['grammar_symbol'] == "ID":
             if operand1.value['token'] not in SymbolTable.getInstance().symbol_table:
@@ -112,7 +164,13 @@ class Semantics:
                     operand2.value['type'] != "INT":
                 print("Operator ", tree.value, " cannot be applied to not INT type!")
             else:
-                Semantics.process_semantic_math_expression_reduce(tree)
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "ILIT",
+                    "type": None,
+                    "value": None
+                }
         elif operand1.value['grammar_symbol'] == "ILIT" and \
                 operand2.value['grammar_symbol'] == "ID":
             if operand2.value['token'] not in SymbolTable.getInstance().symbol_table:
@@ -121,35 +179,117 @@ class Semantics:
             if operand2.value['type'] != "INT":
                 print("Operator ", tree.value, " cannot be applied to not INT type!")
             else:
-                Semantics.process_semantic_math_expression_reduce(tree)
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "ILIT",
+                    "type": None,
+                    "value": None
+                }
         elif operand1.value['grammar_symbol'] == "ID" and \
                 operand2.value['grammar_symbol'] == "ILIT":
+            if operand1.value['token'] not in SymbolTable.getInstance().symbol_table:
+                print("Cannot resolve symbol ", operand1.value['token'], "!")
+
+            if operand1.value['type'] != "INT":
+                print("Operator ", tree.value, " cannot be applied to not INT type!")
+            else:
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "ILIT",
+                    "type": None,
+                    "value": None
+                }
+        else:
+            print("Operator ", tree.value, " cannot be applied to not INT type!")
+
+    @staticmethod
+    def process_semantic_boolean_expression(tree):
+        operand1 = tree.children[0]
+        operand2 = tree.children[1]
+        if operand1.value['grammar_symbol'] == "BLIT" and \
+                operand2.value['grammar_symbol'] == "BLIT":
+            tree.value = {
+                "uid": None,
+                "token": None,
+                "grammar_symbol": "BLIT",
+                "type": None,
+                "value": None
+            }
+        elif operand1.value['grammar_symbol'] == "ID" and \
+                operand2.value['grammar_symbol'] == "ID":
             if operand1.value['token'] not in SymbolTable.getInstance().symbol_table:
                 print("Cannot resolve symbol ", operand1.value['token'], "!")
 
             if operand2.value['token'] not in SymbolTable.getInstance().symbol_table:
                 print("Cannot resolve symbol ", operand2.value['token'], "!")
 
-            if operand1.value['type'] != "INT" or \
-                    operand2.value['type'] != "INT":
-                print("Operator ", tree.value, " cannot be applied to not INT type!")
+            if operand1.value['type'] != "BOOL" or \
+                    operand2.value['type'] != "BOOL":
+                print("Operator ", tree.value, " cannot be applied to not BOOL type!")
             else:
-                Semantics.process_semantic_math_expression_reduce(tree)
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "BLIT",
+                    "type": None,
+                    "value": None
+                }
+        elif operand1.value['grammar_symbol'] == "BLIT" and \
+                operand2.value['grammar_symbol'] == "ID":
+            if operand2.value['token'] not in SymbolTable.getInstance().symbol_table:
+                print("Cannot resolve symbol ", operand2.value['token'], "!")
+
+            if operand2.value['type'] != "BOOL":
+                print("Operator ", tree.value, " cannot be applied to not BOOL type!")
+            else:
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "BLIT",
+                    "type": None,
+                    "value": None
+                }
+        elif operand1.value['grammar_symbol'] == "ID" and \
+                operand2.value['grammar_symbol'] == "BLIT":
+            if operand1.value['token'] not in SymbolTable.getInstance().symbol_table:
+                print("Cannot resolve symbol ", operand1.value['token'], "!")
+
+            if operand1.value['type'] != "BOOL":
+                print("Operator ", tree.value, " cannot be applied to not BOOL type!")
+            else:
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "BLIT",
+                    "type": None,
+                    "value": None
+                }
+        else:
+            print("Operator ", tree.value, " cannot be applied to not BOOL type!")
 
     @staticmethod
-    def process_semantic_math_expression_reduce(tree):
+    def process_semantic_string_expression(tree):
         operand1 = tree.children[0]
         operand2 = tree.children[1]
-        tree.value = operand1.value
-        if tree.value == "+":
-            tree.value['token'] = int(tree.value['token']) + int(operand2.value['token'])
-        elif tree.value == "-":
-            tree.value['token'] = int(tree.value['token']) + int(operand2.value['token'])
-        elif tree.value == "*":
-            tree.value['token'] = int(tree.value['token']) + int(operand2.value['token'])
-        elif tree.value == "/":
-            tree.value['token'] = int(tree.value['token']) + int(operand2.value['token'])
-        elif tree.value == "%":
-            tree.value['token'] = int(tree.value['token']) + int(operand2.value['token'])
-        tree.value['token'] = str(tree.value['token'])
-        tree.children.clear()
+
+        error_msgs = []
+        if operand1.value['grammar_symbol'] == "ID":
+            if operand1.value['token'] not in SymbolTable.getInstance().symbol_table:
+                error_msgs.append("Cannot resolve symbol ", operand1.value['token'], "!")
+
+        if operand2.value['grammar_symbol'] == "ID":
+            if operand2.value['token'] not in SymbolTable.getInstance().symbol_table:
+                error_msgs += "Cannot resolve symbol ", operand2.value['token'], "!"
+
+        if len(error_msgs) != 0:
+            ErrorHandler.getInstance().errors.extend(error_msgs)
+        else:
+            tree.value = {
+                "uid": None,
+                "token": None,
+                "grammar_symbol": "SLIT",
+                "type": None,
+                "value": None
+            }
