@@ -83,6 +83,46 @@ class Yacc:
 
                 state.transitions.append(transition)
 
+    def add_rules_with_nonterminal_followed_by_dot(self, state):
+        """given state with initial rules, add rules to the state for all the current rules
+        that has a production of dot followed by a non terminal"""
+        # list of non terminal symbols
+        unprocessed_rules = Queue()
+        for rule in state.rules:
+            unprocessed_rules.put(rule)
+
+        # for every non terminal symbol in queue,
+        while unprocessed_rules.empty() is False:
+            rule = unprocessed_rules.get()
+
+            # if rule's dot followed by a non terminal
+            nonterminal = Utils.get_nonterminal_followed_by_dot(rule)
+            if nonterminal is None:
+                continue
+
+            # get all the rules of that non_terminal
+            rules_of_nonterminal = Grammar.find_rule_and_deep_copy(nonterminal, self.grammar)
+
+            # add dot in the beginning for all the production
+            for i in range(len(rules_of_nonterminal)):
+                rules_of_nonterminal[i].insert(2, ".")
+
+                # if rules_of_nonterminal does not exist in state.rules
+                if rules_of_nonterminal[i] not in state.rules:
+                    # add it to the state.rules and unprocessed_rules
+                    state.rules.append(rules_of_nonterminal[i])
+                    unprocessed_rules.put(rules_of_nonterminal[i])
+
+                    def get_transition_inputs(self, state):
+                        # add all symbols (terminal and nonterminal) to transition_inputs_queue
+                        transition_inputs = []
+                        for rule in state.rules:
+                            symbol = Utils.get_symbol_followed_by_dot(rule)
+                            if symbol is not None and symbol not in transition_inputs:
+                                transition_inputs.append(symbol)
+
+                        return transition_inputs
+
     def create_parsing_table(self):
         """creates slr(1) parsing table after calling create_parser() which creates the finite state diagram"""
         symbols = Utils.get_all_symbols(self.grammar)
@@ -418,43 +458,3 @@ class Yacc:
         else:
             raise Exception("Something went wrong during converting to AST! Found an unexpected production rule.")
         print()
-
-    def add_rules_with_nonterminal_followed_by_dot(self, state):
-        """given state with initial rules, add rules to the state for all the current rules
-        that has a production of dot followed by a non terminal"""
-        # list of non terminal symbols
-        unprocessed_rules = Queue()
-        for rule in state.rules:
-            unprocessed_rules.put(rule)
-
-        # for every non terminal symbol in queue,
-        while unprocessed_rules.empty() is False:
-            rule = unprocessed_rules.get()
-
-            # if rule's dot followed by a non terminal
-            nonterminal = Utils.get_nonterminal_followed_by_dot(rule)
-            if nonterminal is None:
-                continue
-
-            # get all the rules of that non_terminal
-            rules_of_nonterminal = Grammar.find_rule_and_deep_copy(nonterminal, self.grammar)
-
-            # add dot in the beginning for all the production
-            for i in range(len(rules_of_nonterminal)):
-                rules_of_nonterminal[i].insert(2, ".")
-
-                # if rules_of_nonterminal does not exist in state.rules
-                if rules_of_nonterminal[i] not in state.rules:
-                    # add it to the state.rules and unprocessed_rules
-                    state.rules.append(rules_of_nonterminal[i])
-                    unprocessed_rules.put(rules_of_nonterminal[i])
-
-    def get_transition_inputs(self, state):
-        # add all symbols (terminal and nonterminal) to transition_inputs_queue
-        transition_inputs = []
-        for rule in state.rules:
-            symbol = Utils.get_symbol_followed_by_dot(rule)
-            if symbol is not None and symbol not in transition_inputs:
-                transition_inputs.append(symbol)
-
-        return transition_inputs
