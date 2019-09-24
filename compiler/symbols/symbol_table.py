@@ -14,3 +14,4 @@ class SymbolTable:
         else:
             SymbolTable.__instance = self
             self.unknown_tokens = {}   # tokens such as variables, literals, etc. are not known to grammar
+            self.symbol_table = {}  # list of declared variables

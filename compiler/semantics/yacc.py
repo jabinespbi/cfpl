@@ -2,13 +2,14 @@ from queue import Queue
 
 from compiler.lexical.lexical import Lexical
 from compiler.parsing_table_error import ParsingTableError
+from compiler.semantics.abtract_syntax_tree import AbstractSyntaxTree
 from compiler.semantics.action import Action
 from compiler.semantics.action_type import ActionType
 from compiler.semantics.grammar import Grammar
+from compiler.semantics.parse_tree import ParseTree
+from compiler.semantics.semantics import Semantics
 from compiler.semantics.state import State
 from compiler.semantics.transition import Transition
-from compiler.symbols.symbol_table import SymbolTable
-from compiler.tree import Tree
 from compiler.utils import Utils
 
 
@@ -113,15 +114,15 @@ class Yacc:
                     state.rules.append(rules_of_nonterminal[i])
                     unprocessed_rules.put(rules_of_nonterminal[i])
 
-                    def get_transition_inputs(self, state):
-                        # add all symbols (terminal and nonterminal) to transition_inputs_queue
-                        transition_inputs = []
-                        for rule in state.rules:
-                            symbol = Utils.get_symbol_followed_by_dot(rule)
-                            if symbol is not None and symbol not in transition_inputs:
-                                transition_inputs.append(symbol)
+    def get_transition_inputs(self, state):
+        # add all symbols (terminal and nonterminal) to transition_inputs_queue
+        transition_inputs = []
+        for rule in state.rules:
+            symbol = Utils.get_symbol_followed_by_dot(rule)
+            if symbol is not None and symbol not in transition_inputs:
+                transition_inputs.append(symbol)
 
-                        return transition_inputs
+        return transition_inputs
 
     def create_parsing_table(self):
         """creates slr(1) parsing table after calling create_parser() which creates the finite state diagram"""
@@ -175,286 +176,13 @@ class Yacc:
 
     def create_parse_tree(self):
         """Creates the parse tree using the slr1 parsing table"""
-        stack = ["EoS", 0]
-        try:
-            token_indexes = self.lexical.next()
-            while True:
-                symbol = SymbolTable.getInstance().unknown_tokens[token_indexes[0]]
-                grammar_symbol = symbol['token']
-
-                if symbol['grammar_symbol'] is not None:
-                    grammar_symbol = symbol['grammar_symbol']
-                action = self.slr1[stack[-1]][grammar_symbol]
-
-                if action is None:
-                    print("A syntax error is found at index " + str(token_indexes[0]) + ", token " + symbol[
-                        'token'] + ".")
-                    print("Information: curr_state", stack[-1], "on input '", symbol['grammar_symbol'], "'")
-
-                if action.type is ActionType.SHIFT:
-                    node = Tree()
-                    node.value = symbol
-                    stack.append(node)
-                    stack.append(action.next_state)
-                    token_indexes = self.lexical.next()
-                elif action.type is ActionType.GOTO:
-                    raise Exception("Unexpected action type: GOTO! GOTO should only be after reduce action!")
-                elif action.type is ActionType.REDUCE:
-                    parent = Tree()
-                    reduce_rule = action.reduce_rule
-                    parent.value = reduce_rule[0]
-                    rhs_length = len(reduce_rule) - 2
-
-                    for x in range(rhs_length):
-                        stack.pop()
-                        child = stack.pop()
-                        parent.children.insert(0, child)
-
-                    action = self.slr1[stack[-1]][reduce_rule[0]]
-                    if action.type is not ActionType.GOTO:
-                        raise Exception("Unexpected action type: " + action.type.name + "! Should be GOTO action!")
-
-                    stack.append(parent)
-                    stack.append(action.next_state)
-                elif action.type is ActionType.ACCEPT:
-                    self.parse_tree = stack[-1]
-                    print("Syntax analysis is complete!")
-                    return
-        except EOFError:
-            print("Found the end of input!")
-            grammar_symbol = "EoI"
-            while True:
-                action = self.slr1[stack[-1]][grammar_symbol]
-                if action.type is ActionType.ACCEPT:
-                    self.parse_tree = stack[-2]
-                    print("Syntax analysis is complete!")
-                    return
-
-                parent = Tree()
-                reduce_rule = action.reduce_rule
-                parent.value = reduce_rule[0]
-                rhs_length = len(reduce_rule) - 2
-
-                for x in range(rhs_length):
-                    stack.pop()
-                    child = stack.pop()
-                    parent.children.insert(0, child)
-
-                action = self.slr1[stack[-1]][reduce_rule[0]]
-
-                if action.type is not ActionType.GOTO:
-                    raise Exception("Unexpected action type: " + action.type.name + "! Should be GOTO action!")
-
-                stack.append(parent)
-                stack.append(action.next_state)
-        except KeyError:
-            print("Key is not found in the symbol table! ", self.lexical.lexemes[token_indexes[0]: token_indexes[1]])
+        self.parse_tree = ParseTree.create_parse_tree(self.lexical, self.slr1)
 
     def convert_parse_tree_to_abstract_syntax_tree(self):
         """Convert parse tree to abstract syntax tree using depth first, left to right traversal."""
-        self.ast = self.parse_tree.copy()
+        self.ast = AbstractSyntaxTree.create_ast(self.parse_tree)
 
-        done = []
-        stack = [self.parse_tree]
-        ast_stack = [self.ast]
-        while len(stack) is not 0:
-            top = stack[-1]
-            ast_top = ast_stack[-1]
-            if len(top.children) > 0:
-                if top not in done:
-                    for x in range(len(top.children) - 1, -1, -1):
-                        stack.append(top.children[x])
-                        ast_stack.append(ast_top.children[x])
-                        done.append(top)
-                else:
-                    self.process_semantic_rules_for_abstract_syntax_tree(stack.pop(), ast_stack.pop())
-            else:
-                stack.pop()
-                ast_stack.pop()
-
-    def process_semantic_rules_for_abstract_syntax_tree(self, parse_tree, ast):
-        """Note: this process will not mutate the parse_tree and the ast will not reference the
-        contents of the parse_tree. the parse_tree is only included to know the rule."""
-        rule = [parse_tree.value, "->"]
-        # if tree.value['grammar_symbol'] is not None:
-        #     rule[0] = tree.value['grammar_symbol']
-
-        for child in parse_tree.children:
-            if type(child.value) is dict:
-                if child.value['grammar_symbol'] is not None:
-                    rule.append(child.value['grammar_symbol'])
-                else:
-                    rule.append(child.value['token'])
-            else:
-                rule.append(child.value)
-
-        if rule == ["<cfpl>", "->", "<declaration-list>", "<main-block>"]:
-            children = ast.children[0].children
-            children.extend(ast.children[1].children)
-            ast.children = children
-        elif rule == ["<cfpl>", "->", "<declaration-list>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<cfpl>", "->", "<main-block>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<declaration-list>", "->", "<declaration>"]:
-            pass
-        elif rule == ["<declaration-list>", "->", "<declaration>", "<declaration-list>"]:
-            executable_statement_list = ast.children[1].children
-            ast.children.pop(1)
-            ast.children.extend(executable_statement_list)
-        elif rule == ["<declaration>", "->", "VAR", "<declaration-block-list>", "AS", "<data-type>", "\n"]:
-            ast.value = "DECLARE"
-            children = ast.children[1].children
-            children.append(ast.children[3])
-            ast.children = children
-        elif rule == ["<declaration-block-list>", "->", "<declaration-block>"]:
-            pass
-        elif rule == ["<declaration-block-list>", "->", "<declaration-block>", ",", "<declaration-block-list>"]:
-            executable_statement_list = ast.children[2].children
-            ast.children.pop(1)
-            ast.children.pop(1)
-            ast.children.extend(executable_statement_list)
-        elif rule == ["<declaration-block>", "->", "ID", "=", "<assignment>"]:
-            ast.value = ast.children[1].value
-            ast.children.pop(1)
-        elif rule == ["<declaration-block>", "->", "ID"] or \
-                rule == ["<data-type>", "->", "INT"] or \
-                rule == ["<data-type>", "->", "CHAR"] or \
-                rule == ["<data-type>", "->", "BOOL"] or \
-                rule == ["<data-type>", "->", "FLOAT"]:
-            ast.value = ast.children[0].value
-            ast.children.clear()
-        elif rule == ["<main-block>", "->", "START", "\n", "STOP"]:
-            ast.children.clear()
-        elif rule == ["<main-block>", "->", "START", "\n", "STOP", "\n"]:
-            ast.children.clear()
-        elif rule == ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP"]:
-            ast.children = ast.children[2].children
-        elif rule == ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP", "\n"]:
-            ast.children = ast.children[2].children
-        elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "\n"]:
-            ast.children.pop(1)
-        elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "\n",
-                      "<executable-statement-list>"]:
-            executable_statement_list = ast.children[2].children
-            ast.children.pop(1)
-            ast.children.pop(1)
-            ast.children.extend(executable_statement_list)
-        elif rule == ["<executable-statement>", "->", "ID", "=", "<assignment>"]:
-            ast.value = ast.children[1].value
-            ast.children.pop(1)
-        elif rule == ["<executable-statement>", "->", "<output>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<executable-statement>", "->", "<input>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<assignment>", "->", "ID", "=", "<assignment>"]:
-            ast.value = ast.children[1].value
-            ast.children.pop(1)
-        elif rule == ["<assignment>", "->", "<or-expression>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<or-expression>", "->", "<or-expression>", "OR", "<and-expression>"]:
-            ast.value = ast.children[1].value
-            ast.children.pop(1)
-        elif rule == ["<or-expression>", "->", "<and-expression>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<and-expression>", "->", "<and-expression>", "AND", "<equality-expression>"]:
-            ast.value = ast.children[1].value
-            ast.children.pop(1)
-        elif rule == ["<and-expression>", "->", "<equality-expression>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<equality-expression>", "->", "<equality-expression>", "<equality-operator>",
-                      "<relational-expression>"]:
-            ast.value = ast.children[1].value
-            ast.children.pop(1)
-        elif rule == ["<equality-expression>", "->", "<relational-expression>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<equality-operator>", "->", "=="] or \
-                rule == ["<equality-operator>", "->", "<>"]:
-            ast.value = ast.children[0].value
-            ast.children.clear()
-        elif rule == ["<relational-expression>", "->", "<relational-expression>", "<relational-operator>",
-                      "<additive-expression>"]:
-            ast.value = ast.children[1].value
-            ast.children.pop(1)
-        elif rule == ["<relational-expression>", "->", "<additive-expression>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<relational-operator>", "->", ">"] or \
-                rule == ["<relational-operator>", "->", "<"] or \
-                rule == ["<relational-operator>", "->", ">="] or \
-                rule == ["<relational-operator>", "->", "<="]:
-            ast.value = ast.children[0].value
-            ast.children.clear()
-        elif rule == ["<additive-expression>", "->", "<additive-expression>", "<additive-operator>",
-                      "<multiplicative-expression>"]:
-            ast.value = ast.children[1].value
-            ast.children.pop(1)
-        elif rule == ["<additive-expression>", "->", "<multiplicative-expression>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<additive-operator>", "->", "+"] or \
-                rule == ["<additive-operator>", "->", "-"] or \
-                rule == ["<additive-operator>", "->", "&"]:
-            ast.value = ast.children[0].value
-            ast.children.clear()
-        elif rule == ["<multiplicative-expression>", "->", "<multiplicative-expression>", "<multiplicative-operator>",
-                      "<unary-expression>"]:
-            ast.value = ast.children[1].value
-            ast.children.pop(1)
-        elif rule == ["<multiplicative-expression>", "->", "<unary-expression>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<multiplicative-operator>", "->", "*"] or \
-                rule == ["<multiplicative-operator>", "->", "/"] or \
-                rule == ["<multiplicative-operator>", "->", "%"]:
-            ast.value = ast.children[0].value
-            ast.children.clear()
-        elif rule == ["<unary-expression>", "->", "<unary-operator>", "<unary-expression>"]:
-            ast.value = ast.children[0].value
-            ast.children.pop(0)
-        elif rule == ["<unary-expression>", "->", "<parenthesis-expression>"]:
-            ast.value = ast.children[0].value
-            ast.children = ast.children[0].children
-        elif rule == ["<unary-operator>", "->", "+"]:
-            ast.value = "UNARY-PLUS"
-            ast.children.clear()
-        elif rule == ["<unary-operator>", "->", "-"]:
-            ast.value = "UNARY-MINUS"
-            ast.children.clear()
-        elif rule == ["<unary-operator>", "->", "NOT"]:
-            ast.value = "NOT"
-            ast.children.clear()
-        elif rule == ["<parenthesis-expression>", "->", "(", "<or-expression>", ")"]:
-            ast.value = ast.children[1].value
-            ast.children = ast.children[1].children
-        elif rule == ["<parenthesis-expression>", "->", "ID"] or \
-                rule == ["<parenthesis-expression>", "->", "CLIT"] or \
-                rule == ["<parenthesis-expression>", "->", "ILIT"] or \
-                rule == ["<parenthesis-expression>", "->", "FLIT"] or \
-                rule == ["<parenthesis-expression>", "->", "BLIT"] or \
-                rule == ["<parenthesis-expression>", "->", "SLIT"]:
-            ast.value = ast.children[0].value
-            ast.children.clear()
-        elif rule == ["<output>", "->", "OUTPUT:", "<or-expression>"]:
-            ast.value = "OUTPUT"
-            ast.children.pop(0)
-        elif rule == ["<input>", "->", "INPUT:", "<id-list>"]:
-            ast.value = "INPUT"
-            ast.children.pop(0)
-        elif rule == ["<id-list>", "->", "ID"]:
-            pass  # ignore
-        elif rule == ["<id-list>", "->", "<id-list>", ",", "ID"]:
-            id_list = ast.children[0].children
-            id_list.append(ast.children[1])
-            ast.children = [id_list]
-        else:
-            raise Exception("Something went wrong during converting to AST! Found an unexpected production rule.")
-        print()
+    def check_semantics(self):
+        """Checks type mismatch, undeclared variable, reserved identifier misuse, and multiple declaration of
+        variable """
+        Semantics.check(self.ast)

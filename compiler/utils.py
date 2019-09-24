@@ -254,5 +254,20 @@ class Utils:
         SymbolTable.getInstance().unknown_tokens[token_indexes_found[0]] = {
             "uid": token_indexes_found[0],
             "token": symbol,
-            "grammar_symbol": grammar_symbol
+            "grammar_symbol": grammar_symbol,
+            "type": None,   # used in semantics
+            "value": None   # used in runtime
         }
+
+    @staticmethod
+    def grammar_type_to_data_type(grammar_type):
+        if grammar_type == "CLIT":
+            return "CHAR"
+        elif grammar_type == "ILIT":
+            return "INT"
+        elif grammar_type == "FLIT":
+            return "FLOAT"
+        elif grammar_type == "BLIT":
+            return "BOOL"
+        else:
+            raise Exception("Unexpected argument ", grammar_type, "!")

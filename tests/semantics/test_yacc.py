@@ -340,7 +340,6 @@ class TestYacc(unittest.TestCase):
         yacc.create_parsing_table()
         yacc.create_parse_tree()
         yacc.convert_parse_tree_to_abstract_syntax_tree()
-        print()
 
     @unittest.skip("just a long message, manual testing")
     def test_convert_to_abstract_syntax_tree_cfpl4(self):
