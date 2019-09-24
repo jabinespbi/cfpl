@@ -264,13 +264,11 @@ class Yacc:
             executable_statement_list = ast.children[1].children
             ast.children.pop(1)
             ast.children.extend(executable_statement_list)
-            print()
         elif rule == ["<declaration>", "->", "VAR", "<declaration-block-list>", "AS", "<data-type>", "\n"]:
             ast.value = "DECLARE"
             children = ast.children[1].children
             children.append(ast.children[3])
             ast.children = children
-            print()
         elif rule == ["<declaration-block-list>", "->", "<declaration-block>"]:
             pass
         elif rule == ["<declaration-block-list>", "->", "<declaration-block>", ",", "<declaration-block-list>"]:
@@ -278,17 +276,19 @@ class Yacc:
             ast.children.pop(1)
             ast.children.pop(1)
             ast.children.extend(executable_statement_list)
-            print()
         elif rule == ["<declaration-block>", "->", "ID", "=", "<assignment>"]:
             ast.value = ast.children[1].value
             ast.children.pop(1)
-            print()
         elif rule == ["<declaration-block>", "->", "ID"] or \
                 rule == ["<data-type>", "->", "INT"] or \
                 rule == ["<data-type>", "->", "CHAR"] or \
                 rule == ["<data-type>", "->", "BOOL"] or \
                 rule == ["<data-type>", "->", "FLOAT"]:
             ast.value = ast.children[0].value
+            ast.children.clear()
+        elif rule == ["<main-block>", "->", "START", "\n", "STOP"]:
+            ast.children.clear()
+        elif rule == ["<main-block>", "->", "START", "\n", "STOP", "\n"]:
             ast.children.clear()
         elif rule == ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP"]:
             ast.children = ast.children[2].children
@@ -298,7 +298,7 @@ class Yacc:
             ast.children.pop(1)
         elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "\n",
                       "<executable-statement-list>"]:
-            executable_statement_list = ast.children[1].children
+            executable_statement_list = ast.children[2].children
             ast.children.pop(1)
             ast.children.pop(1)
             ast.children.extend(executable_statement_list)
@@ -405,10 +405,10 @@ class Yacc:
             ast.children.clear()
         elif rule == ["<output>", "->", "OUTPUT:", "<or-expression>"]:
             ast.value = "OUTPUT"
-            ast.children = ast.children[1]
+            ast.children.pop(0)
         elif rule == ["<input>", "->", "INPUT:", "<id-list>"]:
             ast.value = "INPUT"
-            ast.children = ast.children[1].children
+            ast.children.pop(0)
         elif rule == ["<id-list>", "->", "ID"]:
             pass  # ignore
         elif rule == ["<id-list>", "->", "<id-list>", ",", "ID"]:
@@ -417,6 +417,7 @@ class Yacc:
             ast.children = [id_list]
         else:
             raise Exception("Something went wrong during converting to AST! Found an unexpected production rule.")
+        print()
 
     def add_rules_with_nonterminal_followed_by_dot(self, state):
         """given state with initial rules, add rules to the state for all the current rules

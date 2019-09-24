@@ -31,6 +31,8 @@ class Grammar:
             ["<data-type>", "->", "CHAR"],
             ["<data-type>", "->", "BOOL"],
             ["<data-type>", "->", "FLOAT"],
+            ["<main-block>", "->", "START", "\n", "STOP"],
+            ["<main-block>", "->", "START", "\n", "STOP", "\n"],
             ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP"],
             ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP", "\n"],
             ["<executable-statement-list>", "->", "<executable-statement>", "\n"],
