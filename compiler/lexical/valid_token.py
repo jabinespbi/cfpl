@@ -1,5 +1,6 @@
 import re
 
+from compiler.error_handler.error_handler import ErrorHandler
 from compiler.utils import Utils
 
 
@@ -14,8 +15,12 @@ class ValidToken:
                   r'[0-9]+|' \
                   r'[0-9]*\.[0-9]+|' \
                   r'\".*\"|' \
-                  r'\'.\'|' \
-                  r')\Z'
+                  r'\'.\'' \
+                  r') ?\Z'
+
+    first_char_valid = r'\A(' \
+                       r'[\(\)*/%+\-><=&,A-Za-z$_"\'0-9.]|' \
+                       r')\Z'
 
     def check(self, lexemes, curr_ptr):
         """ lexemes should start a character of the token
@@ -25,6 +30,22 @@ class ValidToken:
 
         lex_ptr = curr_ptr
         end = lex_ptr + 1
+
+        while True:
+            first_character_of_token = lexemes[lex_ptr:end]
+            if first_character_of_token == " ":
+                lex_ptr = end
+                end = end + 1
+                continue
+
+            if re.match(self.first_char_valid, first_character_of_token) is None:
+                msg = "Illegal character: " + first_character_of_token + " near " + self.near(lexemes, lex_ptr)
+                ErrorHandler.getInstance().lex_errors.append(msg)
+                lex_ptr = end
+                end = end + 1
+                continue
+            else:
+                break
 
         token_indexes_found = None
         while end <= len(lexemes):
@@ -39,11 +60,28 @@ class ValidToken:
                 matchObj = re.match(self.token_regex, possible_longer_token)
 
                 if matchObj is None:
+                    if possible_token[len(possible_token) - 1] == " ":
+                        token_indexes_found[1] = token_indexes_found[1] - 1
                     Utils.add_symbol_to_symbol_table(token_indexes_found, lexemes)
                     return token_indexes_found
 
             end += 1
 
         if token_indexes_found is not None:
+            token = lexemes[token_indexes_found[0]: token_indexes_found[1]]
+            if token[len(token) - 1] == " ":
+                token_indexes_found[1] = token_indexes_found[1] - 1
             Utils.add_symbol_to_symbol_table(token_indexes_found, lexemes)
         return token_indexes_found
+
+    def near(self, lexemes, lex_ptr):
+        if lex_ptr < 5:
+            end_index = len(lexemes) - 1
+            if lex_ptr + 5 < end_index:
+                end_index = lex_ptr + 5
+            return lexemes[lex_ptr: end_index]
+        else:
+            start_index = 0
+            if lex_ptr - 5 > start_index:
+                start_index = lex_ptr - 5
+            return lexemes[start_index: lex_ptr + 1]

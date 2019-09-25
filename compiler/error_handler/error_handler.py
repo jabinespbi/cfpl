@@ -13,4 +13,6 @@ class ErrorHandler:
             raise Exception("This class is a singleton!")
         else:
             ErrorHandler.__instance = self
-            self.errors = []
+            self.lex_errors = []
+            self.syntax_errors = []
+            self.semantics_errors = []

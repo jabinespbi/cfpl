@@ -1,12 +1,18 @@
 <form action="/" method="post">
     {% csrf_token %}
     <div>
-        Source Code, Tokens:
+        Source Code:
         <p>
             <textarea name="source_code" style="resize: none;" cols="70"
                       rows="25">{{request.POST.source_code}}</textarea>
             <textarea name="tokens" style="resize: none;" cols="70"
-                      rows="25">{% for token in tokens %}{{ token }}{{ "|" }}{% endfor %}
+                      rows="25">
+Tokens:
+{% for token in tokens %}{{ token }}{{ "|" }}{% endfor %}
+
+Errors:
+{% for error in errors %}{{ error }}
+{% endfor %}
             </textarea>
         </p>
         <p>
