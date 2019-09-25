@@ -271,3 +271,16 @@ class Utils:
             return "BOOL"
         else:
             raise Exception("Unexpected argument ", grammar_type, "!")
+
+    @staticmethod
+    def near(lexemes, lex_ptr):
+        if lex_ptr < 5:
+            end_index = len(lexemes) - 1
+            if lex_ptr + 5 < end_index:
+                end_index = lex_ptr + 5
+            return lexemes[lex_ptr: end_index]
+        else:
+            start_index = 0
+            if lex_ptr - 5 > start_index:
+                start_index = lex_ptr - 5
+            return lexemes[start_index: lex_ptr + 1]

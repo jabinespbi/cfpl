@@ -39,7 +39,7 @@ class ValidToken:
                 continue
 
             if re.match(self.first_char_valid, first_character_of_token) is None:
-                msg = "Illegal character: " + first_character_of_token + " near " + self.near(lexemes, lex_ptr)
+                msg = "Illegal character: " + first_character_of_token + " near " + Utils.near(lexemes, lex_ptr)
                 ErrorHandler.getInstance().lex_errors.append(msg)
                 lex_ptr = end
                 end = end + 1
@@ -73,15 +73,3 @@ class ValidToken:
                 token_indexes_found[1] = token_indexes_found[1] - 1
             Utils.add_symbol_to_symbol_table(token_indexes_found, lexemes)
         return token_indexes_found
-
-    def near(self, lexemes, lex_ptr):
-        if lex_ptr < 5:
-            end_index = len(lexemes) - 1
-            if lex_ptr + 5 < end_index:
-                end_index = lex_ptr + 5
-            return lexemes[lex_ptr: end_index]
-        else:
-            start_index = 0
-            if lex_ptr - 5 > start_index:
-                start_index = lex_ptr - 5
-            return lexemes[start_index: lex_ptr + 1]
