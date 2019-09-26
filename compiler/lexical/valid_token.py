@@ -19,7 +19,7 @@ class ValidToken:
                   r') ?\Z'
 
     first_char_valid = r'\A(' \
-                       r'[\(\)*/%+\-><=&,A-Za-z$_"\'0-9.]|' \
+                       r'[\(\)*/%+\-><=&,A-Za-z$_\"\'0-9.]|' \
                        r')\Z'
 
     def check(self, lexemes, curr_ptr):

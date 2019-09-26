@@ -134,6 +134,8 @@ class Yacc:
                 self.slr1[x][symbol] = None
 
         for x in range(len(self.parser_states)):
+            if x is 52:
+                print()
             state = self.parser_states[x]
             for rule in state.rules:
                 if rule[len(rule) - 1] == '.':  # if reduce state

@@ -22,24 +22,32 @@ class Grammar:
 
             ["<declaration-list>", "->", "<declaration>"],
             ["<declaration-list>", "->", "<declaration>", "<declaration-list>"],
+
             ["<declaration>", "->", "VAR", "<declaration-block-list>", "AS", "<data-type>", "\n"],
+
             ["<declaration-block-list>", "->", "<declaration-block>"],
             ["<declaration-block-list>", "->", "<declaration-block>", ",", "<declaration-block-list>"],
+
             ["<declaration-block>", "->", "ID", "=", "<assignment>"],
             ["<declaration-block>", "->", "ID"],
+
             ["<data-type>", "->", "INT"],
             ["<data-type>", "->", "CHAR"],
             ["<data-type>", "->", "BOOL"],
             ["<data-type>", "->", "FLOAT"],
+
             ["<main-block>", "->", "START", "\n", "STOP"],
             ["<main-block>", "->", "START", "\n", "STOP", "\n"],
             ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP"],
             ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP", "\n"],
+
             ["<executable-statement-list>", "->", "<executable-statement>", "\n"],
             ["<executable-statement-list>", "->", "<executable-statement>", "\n", "<executable-statement-list>"],
+
             ["<executable-statement>", "->", "ID", "=", "<assignment>"],
             ["<executable-statement>", "->", "<output>"],
             ["<executable-statement>", "->", "<input>"],
+
             ["<assignment>", "->", "ID", "=", "<assignment>"],
             ["<assignment>", "->", "<or-expression>"],
 

@@ -121,8 +121,8 @@ class Utils:
     def follow_rule(rule, nonterminal, grammar):
         return_value = {
             'follows': [],
-            'follow_rule': False        # true if needs to continue following lhs of the rule (follow(lhs)) because
-                                        # follow(nonterminal) hits the end of the rule
+            'follow_rule': False  # true if needs to continue following lhs of the rule (follow(lhs)) because
+            # follow(nonterminal) hits the end of the rule
         }
 
         for x in range(2, len(rule)):
@@ -225,7 +225,7 @@ class Utils:
         reserved_keywords = r'\AINT|CHAR|BOOL|FLOAT|AND|OR|NOT|START|STOP|VAR|AS|OUTPUT:|INPUT:\Z'
         id_regex = r'\A[$_a-zA-Z][$_a-zA-Z0-9]*\Z'
         bool_lit = r'\A\"(TRUE)|(FALSE)\"\Z'
-        int_lit = r'\A[1-9][0-9]*\Z'
+        int_lit = r'\A[0-9]+\Z'
         float_lit = r'\A[0-9]*\.[0-9]+\Z'
         string_lit = r'\A\".*\"\Z'
         char_lit = r'\A\'.\'\Z'
@@ -255,8 +255,8 @@ class Utils:
             "uid": token_indexes_found[0],
             "token": symbol,
             "grammar_symbol": grammar_symbol,
-            "type": None,   # used in semantics
-            "value": None   # used in runtime
+            "type": None,  # used in semantics
+            "value": None  # used in runtime
         }
 
     @staticmethod
@@ -274,13 +274,16 @@ class Utils:
 
     @staticmethod
     def near(lexemes, lex_ptr):
-        if lex_ptr < 5:
-            end_index = len(lexemes) - 1
-            if lex_ptr + 5 < end_index:
-                end_index = lex_ptr + 5
-            return lexemes[lex_ptr: end_index]
-        else:
-            start_index = 0
-            if lex_ptr - 5 > start_index:
-                start_index = lex_ptr - 5
-            return lexemes[start_index: lex_ptr + 1]
+        end_index = len(lexemes)
+        if lex_ptr + 10 < end_index:
+            end_index = lex_ptr + 10
+        near_message = lexemes[lex_ptr: end_index]
+        if "\n" in near_message:
+            index_of_n = near_message.index("\n")
+            return near_message[0: index_of_n]
+
+        return near_message
+
+    @staticmethod
+    def line_number(lexemes, lex_ptr):
+        return lexemes[0: lex_ptr + 1].count('\n')

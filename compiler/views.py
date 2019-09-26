@@ -11,6 +11,7 @@ def index(request):
     errors = []
 
     ErrorHandler.getInstance().lex_errors = []
+    ErrorHandler.getInstance().syntax_errors = []
     if request.POST:
         source_code = request.POST['source_code']
         lexemes = "\n".join(source_code.splitlines())
@@ -22,9 +23,10 @@ def index(request):
         yacc.create_parser()
         yacc.create_parsing_table()
         yacc.create_parse_tree()
-        yacc.convert_parse_tree_to_abstract_syntax_tree()
         errors.extend(ErrorHandler.getInstance().syntax_errors)
-        print()
+
+        if len(ErrorHandler.getInstance().syntax_errors) == 0:
+            yacc.convert_parse_tree_to_abstract_syntax_tree()
 
     context = {
         'tokens': tokens,

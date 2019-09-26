@@ -5,12 +5,12 @@
         <p>
             <textarea name="source_code" style="resize: none;" cols="70"
                       rows="25">{{request.POST.source_code}}</textarea>
-            <textarea name="tokens" style="resize: none;" cols="70"
+            <textarea contenteditable="false" name="tokens" style="resize: none;" cols="70"
                       rows="25">
 Tokens:
 {% for token in tokens %}{{ token }}{{ "|" }}{% endfor %}
 
-Errors:
+{{ errors | length }} errors have found:
 {% for error in errors %}{{ error }}
 {% endfor %}
             </textarea>
