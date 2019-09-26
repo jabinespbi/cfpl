@@ -12,6 +12,7 @@ def index(request):
 
     ErrorHandler.getInstance().lex_errors = []
     ErrorHandler.getInstance().syntax_errors = []
+    ErrorHandler.getInstance().semantics_errors = []
     if request.POST:
         source_code = request.POST['source_code']
         lexemes = "\n".join(source_code.splitlines())
@@ -27,6 +28,8 @@ def index(request):
 
         if len(ErrorHandler.getInstance().syntax_errors) == 0:
             yacc.convert_parse_tree_to_abstract_syntax_tree()
+            yacc.check_semantics()
+            errors.extend(ErrorHandler.getInstance().semantics_errors)
 
     context = {
         'tokens': tokens,

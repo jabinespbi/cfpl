@@ -11,7 +11,7 @@ class ValidToken:
                   r'INT|CHAR|BOOL|FLOAT|AND|OR|NOT|' \
                   r'START|STOP|VAR|AS|OUTPUT:|INPUT:|' \
                   r'[$_a-zA-Z][$_a-zA-Z0-9]*|' \
-                  r'\"(TRUE)|(FALSE)\"|' \
+                  r'\"((TRUE)|(FALSE))\"|' \
                   r'[0-9]+|' \
                   r'[0-9]*\.[0-9]+|' \
                   r'\".*\"|' \

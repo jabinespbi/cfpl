@@ -224,7 +224,7 @@ class Utils:
     def get_grammar_symbol(token):
         reserved_keywords = r'\AINT|CHAR|BOOL|FLOAT|AND|OR|NOT|START|STOP|VAR|AS|OUTPUT:|INPUT:\Z'
         id_regex = r'\A[$_a-zA-Z][$_a-zA-Z0-9]*\Z'
-        bool_lit = r'\A\"(TRUE)|(FALSE)\"\Z'
+        bool_lit = r'\A\"((TRUE)|(FALSE))\"\Z'
         int_lit = r'\A[0-9]+\Z'
         float_lit = r'\A[0-9]*\.[0-9]+\Z'
         string_lit = r'\A\".*\"\Z'
@@ -273,6 +273,21 @@ class Utils:
             raise Exception("Unexpected argument ", grammar_type, "!")
 
     @staticmethod
+    def data_type_to_grammar_type(grammar_type):
+        if grammar_type == "CHAR":
+            return "CLIT"
+        elif grammar_type == "INT":
+            return "ILIT"
+        elif grammar_type == "FLOAT":
+            return "FLIT"
+        elif grammar_type == "BOOL":
+            return "BLIT"
+        elif grammar_type == "STRING":
+            return "SLIT"
+        else:
+            raise Exception("Unexpected argument ", grammar_type, "!")
+
+    @staticmethod
     def near(lexemes, lex_ptr):
         end_index = len(lexemes)
         if lex_ptr + 10 < end_index:
@@ -286,4 +301,44 @@ class Utils:
 
     @staticmethod
     def line_number(lexemes, lex_ptr):
-        return lexemes[0: lex_ptr + 1].count('\n')
+        return lexemes[0: lex_ptr + 1].count('\n') + 1
+
+    @staticmethod
+    def is_id_of_type(operand, data_type):
+        """operand is either dict which is an ID or a literal.
+        data_type should be the grammar data type (e.g. INT, CHAR)"""
+        if type(operand) is not dict:
+            raise Exception("Argument should be a dictionary!")
+
+        if operand.value['grammar_symbol'] != "ID":
+            raise Exception("Argument should be an ID!")
+
+        return operand.value['type'] is data_type
+
+    @staticmethod
+    def is_literal_of_type(literal, data_type):
+        return literal.value['grammar_symbol'] == Utils.data_type_to_grammar_type(data_type)
+
+    @staticmethod
+    def is_declared(variable):
+        """variable should be a dictionary"""
+        return variable['token'] in SymbolTable.getInstance().symbol_table
+
+    @staticmethod
+    def is_id(variable):
+        """variable should be a dictionary"""
+        return variable.value['grammar_symbol'] == "ID"
+
+    @staticmethod
+    def is_error(variable):
+        """variable should be a dictionary"""
+        return variable.value['grammar_symbol'] == "ERROR"
+
+    @staticmethod
+    def is_literal(variable):
+        """variable should be a dictionary"""
+        return variable.value['grammar_symbol'] == "CLIT" or \
+               variable.value['grammar_symbol'] == "ILIT" or \
+               variable.value['grammar_symbol'] == "FLIT" or \
+               variable.value['grammar_symbol'] == "BLIT" or \
+               variable.value['grammar_symbol'] == "SLIT"

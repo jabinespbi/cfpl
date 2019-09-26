@@ -207,6 +207,7 @@ class AbstractSyntaxTree:
         elif rule == ["<input>", "->", "INPUT:", "<id-list>"]:
             ast.value = "INPUT"
             ast.children.pop(0)
+            ast.children = ast.children[0].children
         elif rule == ["<id-list>", "->", "ID"]:
             pass  # ignore
         elif rule == ["<id-list>", "->", "<id-list>", ",", "ID"]:
