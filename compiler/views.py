@@ -2,6 +2,8 @@ from django.shortcuts import render
 
 from compiler.error_handler.error_handler import ErrorHandler
 from compiler.lexical.lexical import Lexical
+from compiler.runtime.output_stream import OutputStream
+from compiler.runtime.runtime import Runtime
 from compiler.semantics.grammar import Grammar
 from compiler.semantics.yacc import Yacc
 
@@ -13,6 +15,7 @@ def index(request):
     ErrorHandler.getInstance().lex_errors = []
     ErrorHandler.getInstance().syntax_errors = []
     ErrorHandler.getInstance().semantics_errors = []
+    OutputStream.output_stream = ""
     if request.POST:
         source_code = request.POST['source_code']
         lexemes = "\n".join(source_code.splitlines())
@@ -29,10 +32,16 @@ def index(request):
         if len(ErrorHandler.getInstance().syntax_errors) == 0:
             yacc.convert_parse_tree_to_abstract_syntax_tree()
             yacc.check_semantics()
-            errors.extend(ErrorHandler.getInstance().semantics_errors)
+
+            semantic_errors = ErrorHandler.getInstance().semantics_errors
+            errors.extend(semantic_errors)
+            if len(semantic_errors) == 0:
+                runtime = Runtime(yacc.ast)
+                runtime.run()
 
     context = {
         'tokens': tokens,
-        'errors': errors
+        'errors': errors,
+        'output': OutputStream.output_stream
     }
     return render(request, 'compiler/index.html', context)
