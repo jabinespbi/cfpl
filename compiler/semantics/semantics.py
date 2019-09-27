@@ -220,7 +220,7 @@ class Semantics:
             if Utils.is_declared(operand.value) is False:
                 error_messages.append("Cannot resolve symbol " + str(operand.value['token']) + "!")
             elif Utils.is_id_of_type(operand.value, data_type) is False:
-                error_messages.append("Expected " + data_type + " type for " + str(operand.value['token']) + "!")
+                    error_messages.append("Expected " + data_type + " type for " + str(operand.value['token']) + "!")
         elif Utils.is_literal_of_type(operand.value, data_type) is False:
             error_messages.append("Expected " + data_type + " type for " + str(operand.value['token']) + "!")
 

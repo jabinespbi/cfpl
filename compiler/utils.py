@@ -310,10 +310,11 @@ class Utils:
         if type(operand) is not dict:
             raise Exception("Argument should be a dictionary!")
 
+        id_data_type = SymbolTable.getInstance().symbol_table[operand['token']]['type']
         if operand['grammar_symbol'] != "ID":
             raise Exception("Argument should be an ID!")
 
-        return operand['type'] is data_type
+        return id_data_type == data_type
 
     @staticmethod
     def is_literal_of_type(literal, data_type):
