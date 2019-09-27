@@ -54,12 +54,12 @@ class Semantics:
                 if Utils.is_declared(tree.children[1].value) is False:
                     error_msg = "Cannot resolve symbol " + tree.children[1].value['token'] + "!"
                     ErrorHandler.getInstance().semantics_errors.append(error_msg)
-
-                symbol = SymbolTable.getInstance().symbol_table[tree.children[1].value['token']]
-                if symbol['type'] is None:
-                    error_msg = "Unexpected no type for token " + tree.children[1].value['token'] + "!"
-                    ErrorHandler.getInstance().semantics_errors.append(error_msg)
-                tree.children[0].value['type'] = tree.children[1].value['type']
+                else:
+                    symbol = SymbolTable.getInstance().symbol_table[tree.children[1].value['token']]
+                    if symbol['type'] is None:
+                        error_msg = "Unexpected no type for token " + tree.children[1].value['token'] + "!"
+                        ErrorHandler.getInstance().semantics_errors.append(error_msg)
+                    tree.children[0].value['type'] = tree.children[1].value['type']
             elif grammar_symbol is "CLIT":
                 tree.children[0].value['type'] = "CHAR"
             elif grammar_symbol is "ILIT":
@@ -189,28 +189,14 @@ class Semantics:
 
     @staticmethod
     def process_semantic_string_expression(tree):
-        operand1 = tree.children[0]
-        operand2 = tree.children[1]
-        error_msgs = Semantics.check_type_operand(operand1, "STRING")
-        error_msgs.extend(Semantics.check_type_operand(operand2, "STRING"))
-
-        if len(error_msgs) > 0:
-            ErrorHandler.getInstance().semantics_errors.extend(error_msgs)
-            tree.value = {
-                "uid": None,
-                "token": None,
-                "grammar_symbol": "ERROR",
-                "type": None,
-                "value": None
-            }
-        else:
-            tree.value = {
-                "uid": None,
-                "token": None,
-                "grammar_symbol": "SLIT",
-                "type": None,
-                "value": None
-            }
+        """Allow all types for string expression"""
+        tree.value = {
+            "uid": None,
+            "token": None,
+            "grammar_symbol": "SLIT",
+            "type": None,
+            "value": None
+        }
 
     @staticmethod
     def check_type_operand(operand, data_type):
