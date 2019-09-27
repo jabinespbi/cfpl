@@ -310,35 +310,50 @@ class Utils:
         if type(operand) is not dict:
             raise Exception("Argument should be a dictionary!")
 
-        if operand.value['grammar_symbol'] != "ID":
+        if operand['grammar_symbol'] != "ID":
             raise Exception("Argument should be an ID!")
 
-        return operand.value['type'] is data_type
+        return operand['type'] is data_type
 
     @staticmethod
     def is_literal_of_type(literal, data_type):
-        return literal.value['grammar_symbol'] == Utils.data_type_to_grammar_type(data_type)
+        if type(literal) is not dict:
+            raise Exception("Argument should be a dictionary!")
+
+        return literal['grammar_symbol'] == Utils.data_type_to_grammar_type(data_type)
 
     @staticmethod
     def is_declared(variable):
         """variable should be a dictionary"""
+        if type(variable) is not dict:
+            raise Exception("Argument should be a dictionary!")
+
         return variable['token'] in SymbolTable.getInstance().symbol_table
 
     @staticmethod
     def is_id(variable):
         """variable should be a dictionary"""
-        return variable.value['grammar_symbol'] == "ID"
+        if type(variable) is not dict:
+            raise Exception("Argument should be a dictionary!")
+
+        return variable['grammar_symbol'] == "ID"
 
     @staticmethod
     def is_error(variable):
         """variable should be a dictionary"""
-        return variable.value['grammar_symbol'] == "ERROR"
+        if type(variable) is not dict:
+            raise Exception("Argument should be a dictionary!")
+
+        return variable['grammar_symbol'] == "ERROR"
 
     @staticmethod
     def is_literal(variable):
         """variable should be a dictionary"""
-        return variable.value['grammar_symbol'] == "CLIT" or \
-               variable.value['grammar_symbol'] == "ILIT" or \
-               variable.value['grammar_symbol'] == "FLIT" or \
-               variable.value['grammar_symbol'] == "BLIT" or \
-               variable.value['grammar_symbol'] == "SLIT"
+        if type(variable) is not dict:
+            raise Exception("Argument should be a dictionary!")
+
+        return variable['grammar_symbol'] == "CLIT" or \
+               variable['grammar_symbol'] == "ILIT" or \
+               variable['grammar_symbol'] == "FLIT" or \
+               variable['grammar_symbol'] == "BLIT" or \
+               variable['grammar_symbol'] == "SLIT"

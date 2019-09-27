@@ -50,7 +50,7 @@ class Semantics:
                     ErrorHandler.getInstance().semantics_errors.append(error_msg)
         elif tree.value == "=":
             grammar_symbol = tree.children[1].value['grammar_symbol']
-            if Utils.is_id(tree.children[1]):
+            if Utils.is_id(tree.children[1].value):
                 if Utils.is_declared(tree.children[1].value) is False:
                     error_msg = "Cannot resolve symbol " + tree.children[1].value['token'] + "!"
                     ErrorHandler.getInstance().semantics_errors.append(error_msg)
@@ -216,12 +216,12 @@ class Semantics:
     def check_type_operand(operand, data_type):
         """ignores with grammar symbol of ERROR"""
         error_messages = []
-        if Utils.is_id(operand):
+        if Utils.is_id(operand.value):
             if Utils.is_declared(operand.value) is False:
                 error_messages.append("Cannot resolve symbol " + str(operand.value['token']) + "!")
-            elif Utils.is_id_of_type(operand, data_type) is False:
+            elif Utils.is_id_of_type(operand.value, data_type) is False:
                 error_messages.append("Expected " + data_type + " type for " + str(operand.value['token']) + "!")
-        elif Utils.is_literal_of_type(operand, data_type) is False:
+        elif Utils.is_literal_of_type(operand.value, data_type) is False:
             error_messages.append("Expected " + data_type + " type for " + str(operand.value['token']) + "!")
 
         return error_messages
