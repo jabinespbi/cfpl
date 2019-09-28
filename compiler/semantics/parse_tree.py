@@ -39,7 +39,7 @@ class ParseTree:
                         'token'] + ".")
                     print("Information: curr_state", stack[-1], "on input '", symbol['grammar_symbol'], "'")
 
-                    ParseTree.panic_mode(lexical, stack)
+                    ParseTree.panic_mode(lexical, stack, symbol['token'])
                     token_indexes = lexical.next()
                     continue
 
@@ -110,7 +110,8 @@ class ParseTree:
             print("Key is not found in the symbol table! ", lexical.lexemes[token_indexes[0]: token_indexes[1]])
 
     @staticmethod
-    def panic_mode(lexical, stack):
+    def panic_mode(lexical, stack, current_token):
+        """current token is used if \n then, there is no need to sync the lexical"""
         # panic mode
         panic_mode = True
         while panic_mode:
@@ -129,8 +130,9 @@ class ParseTree:
                 stack.pop()
                 stack.pop()
 
-        while True:
-            token_indexes = lexical.next()
-            symbol = SymbolTable.getInstance().unknown_tokens[token_indexes[0]]
-            if symbol['token'] == '\n':
-                break
+        if current_token != '\n':
+            while True:
+                token_indexes = lexical.next()
+                symbol = SymbolTable.getInstance().unknown_tokens[token_indexes[0]]
+                if symbol['token'] == '\n':
+                    break

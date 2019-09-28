@@ -301,7 +301,7 @@ class Utils:
 
     @staticmethod
     def line_number(lexemes, lex_ptr):
-        return lexemes[0: lex_ptr + 1].count('\n') + 1
+        return lexemes[0: lex_ptr].count('\n') + 1
 
     @staticmethod
     def is_id_of_type(operand, data_type):
