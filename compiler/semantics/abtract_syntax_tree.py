@@ -92,21 +92,20 @@ class AbstractSyntaxTree:
             ast.children = ast.children[2].children
         elif rule == ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP", "\n"]:
             ast.children = ast.children[2].children
-        elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "\n"]:
-            ast.children.pop(1)
-        elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "\n",
-                      "<executable-statement-list>"]:
-            executable_statement_list = ast.children[2].children
-            ast.children.pop(1)
+        elif rule == ["<executable-statement-list>", "->", "<executable-statement>"]:
+            pass
+        elif rule == ["<executable-statement-list>", "->", "<executable-statement>", "<executable-statement-list>"]:
+            executable_statement_list = ast.children[1].children
             ast.children.pop(1)
             ast.children.extend(executable_statement_list)
-        elif rule == ["<executable-statement>", "->", "ID", "=", "<assignment>"]:
+        elif rule == ["<executable-statement>", "->", "ID", "=", "<assignment>", "\n"]:
             ast.value = "="
+            ast.children.pop(3)
             ast.children.pop(1)
-        elif rule == ["<executable-statement>", "->", "<output>"]:
+        elif rule == ["<executable-statement>", "->", "<output>", "\n"]:
             ast.value = ast.children[0].value
             ast.children = ast.children[0].children
-        elif rule == ["<executable-statement>", "->", "<input>"]:
+        elif rule == ["<executable-statement>", "->", "<input>", "\n"]:
             ast.value = ast.children[0].value
             ast.children = ast.children[0].children
         elif rule == ["<assignment>", "->", "ID", "=", "<assignment>"]:

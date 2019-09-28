@@ -296,7 +296,7 @@ class TestYacc(unittest.TestCase):
         yacc.create_parsing_table()
         yacc.create_parse_tree()
 
-    @unittest.skip("just a long message, manual testing")
+    # @unittest.skip("just a long message, manual testing")
     def test_convert_to_abstract_syntax_tree_cfpl1(self):
         lexemes = "* my first program in CFPL" + '\n' + \
                   "VAR abc, b, c AS INT" + '\n' + \
