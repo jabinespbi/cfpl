@@ -18,7 +18,7 @@ def index(request):
     OutputStream.output_stream = ""
     if request.POST:
         source_code = request.POST['source_code']
-        lexemes = "\n".join(source_code.splitlines())
+        lexemes = source_code.replace("\r\n", "\n")
         lexical = Lexical(lexemes)
         tokens = lexical.get_all_tokens()
         errors = ErrorHandler.getInstance().lex_errors

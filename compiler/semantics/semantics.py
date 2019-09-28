@@ -42,7 +42,10 @@ class Semantics:
                 child.value['type'] = data_type
                 SymbolTable.getInstance().symbol_table[child.value['token']] = child.value
         elif tree.value == "OUTPUT":
-            pass
+            child = tree.children[0]
+            if Utils.is_declared(child.value) is False:
+                error_msg = "Cannot resolve symbol " + child.value['token'] + "!"
+                ErrorHandler.getInstance().semantics_errors.append(error_msg)
         elif tree.value == "INPUT":
             for child in tree.children:
                 if Utils.is_declared(child.value) is False:
