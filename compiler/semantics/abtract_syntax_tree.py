@@ -108,6 +108,37 @@ class AbstractSyntaxTree:
         elif rule == ["<executable-statement>", "->", "<input>", "\n"]:
             ast.value = ast.children[0].value
             ast.children = ast.children[0].children
+        elif rule == ["<executable-statement>", "->", "<while>", "\n"]:
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
+        elif rule == ["<executable-statement>", "->", "<if>"]:
+            raise Exception("Not implemented")
+        elif rule == ["<while>", "->", "WHILE", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP"]:
+            child1 = ast.children[2]
+            child2 = ast.children[7]
+            ast.children = []
+            ast.children.append(child1)
+            ast.children.append(child2)
+            ast.value = "WHILE"
+        elif rule == ["<if>", "->", "IF", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP", "\n"]:
+            child1 = ast.children[2]
+            child2 = ast.children[7]
+            ast.children = []
+            ast.children.append(child1)
+            ast.children.append(child2)
+            ast.value = "IF"
+        elif rule == ["<if>", "->", "IF", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP", "\n", "<else>"]:
+            child1 = ast.children[2]
+            child2 = ast.children[7]
+            child3 = ast.children[10]
+            ast.children = []
+            ast.children.append(child1)
+            ast.children.append(child2)
+            ast.children.append(child3)
+            ast.value = "IF-ELSE"
+        elif rule == ["<else>", "->", "ELSE", "\n", "START", "\n", "<executable-statement-list>", "STOP"]:
+            ast.value = "ELSE"
+            ast.children = ast.children[4].children
         elif rule == ["<assignment>", "->", "ID", "=", "<assignment>"]:
             ast.value = "="
             ast.children.pop(1)
