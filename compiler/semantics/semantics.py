@@ -52,6 +52,7 @@ class Semantics:
                     error_msg = "Cannot resolve symbol " + child.value['token'] + "!"
                     ErrorHandler.getInstance().semantics_errors.append(error_msg)
         elif tree.value == "=":
+            # TODO: d = 2 should have undeclared d error
             grammar_symbol = tree.children[1].value['grammar_symbol']
             if Utils.is_id(tree.children[1].value):
                 if Utils.is_declared(tree.children[1].value) is False:
