@@ -41,12 +41,20 @@ class Grammar:
             ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP"],
             ["<main-block>", "->", "START", "\n", "<executable-statement-list>", "STOP", "\n"],
 
-            ["<executable-statement-list>", "->", "<executable-statement>", "\n"],
-            ["<executable-statement-list>", "->", "<executable-statement>", "\n", "<executable-statement-list>"],
+            ["<executable-statement-list>", "->", "<executable-statement>"],
+            ["<executable-statement-list>", "->", "<executable-statement>", "<executable-statement-list>"],
 
-            ["<executable-statement>", "->", "ID", "=", "<assignment>"],
-            ["<executable-statement>", "->", "<output>"],
-            ["<executable-statement>", "->", "<input>"],
+            ["<executable-statement>", "->", "ID", "=", "<assignment>", "\n"],
+            ["<executable-statement>", "->", "<output>", "\n"],
+            ["<executable-statement>", "->", "<input>", "\n"],
+            ["<executable-statement>", "->", "<while>", "\n"],
+            ["<executable-statement>", "->", "<if>"],
+
+            ["<while>", "->", "WHILE", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP"],
+
+            ["<if>", "->", "IF", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP", "\n"],
+            ["<if>", "->", "IF", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP", "\n", "<else>"],
+            ["<else>", "->", "ELSE", "\n", "START", "\n", "<executable-statement-list>", "STOP"],
 
             ["<assignment>", "->", "ID", "=", "<assignment>"],
             ["<assignment>", "->", "<or-expression>"],
