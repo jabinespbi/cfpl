@@ -10,7 +10,7 @@ class State1:
 
         curr_char = lexical.lexemes[lexical.curr_index]
 
-        if curr_char == '\n' or curr_char == ' ':
+        if curr_char == '\n' or curr_char == ' ' or curr_char == '\t':
             lexical.curr_state = lexical.state1
             lexical.curr_index += 1
             return None

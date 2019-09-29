@@ -10,6 +10,7 @@ from compiler.semantics.parse_tree import ParseTree
 from compiler.semantics.semantics import Semantics
 from compiler.semantics.state import State
 from compiler.semantics.transition import Transition
+from compiler.symbols.symbol_table import SymbolTable
 from compiler.utils import Utils
 
 

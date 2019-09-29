@@ -1,3 +1,6 @@
+from compiler.tree import Tree
+
+
 class AbstractSyntaxTree:
     """Creates ast from parse tree"""
 
@@ -99,9 +102,17 @@ class AbstractSyntaxTree:
             ast.children.pop(1)
             ast.children.extend(executable_statement_list)
         elif rule == ["<executable-statement>", "->", "ID", "=", "<assignment>", "\n"]:
-            ast.value = "="
+            # make an additional node to which semantic checking can use in checking undeclared variables
+            new_tree = Tree()
+            new_tree.value = "="
             ast.children.pop(3)
             ast.children.pop(1)
+            new_tree.children = ast.children
+
+            ast.value = "ASSIGN"
+            ast.children = []
+            ast.children.append(new_tree)
+            print()
         elif rule == ["<executable-statement>", "->", "<output>", "\n"]:
             ast.value = ast.children[0].value
             ast.children = ast.children[0].children
@@ -112,10 +123,12 @@ class AbstractSyntaxTree:
             ast.value = ast.children[0].value
             ast.children = ast.children[0].children
         elif rule == ["<executable-statement>", "->", "<if>"]:
-            raise Exception("Not implemented")
+            ast.value = ast.children[0].value
+            ast.children = ast.children[0].children
         elif rule == ["<while>", "->", "WHILE", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP"]:
             child1 = ast.children[2]
             child2 = ast.children[7]
+            child2.value = "DO"
             ast.children = []
             ast.children.append(child1)
             ast.children.append(child2)
@@ -123,6 +136,7 @@ class AbstractSyntaxTree:
         elif rule == ["<if>", "->", "IF", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP", "\n"]:
             child1 = ast.children[2]
             child2 = ast.children[7]
+            child2.value = "DO"
             ast.children = []
             ast.children.append(child1)
             ast.children.append(child2)
@@ -130,13 +144,14 @@ class AbstractSyntaxTree:
         elif rule == ["<if>", "->", "IF", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP", "\n", "<else>"]:
             child1 = ast.children[2]
             child2 = ast.children[7]
+            child2.value = "DO"
             child3 = ast.children[10]
             ast.children = []
             ast.children.append(child1)
             ast.children.append(child2)
             ast.children.append(child3)
             ast.value = "IF-ELSE"
-        elif rule == ["<else>", "->", "ELSE", "\n", "START", "\n", "<executable-statement-list>", "STOP"]:
+        elif rule == ["<else>", "->", "ELSE", "\n", "START", "\n", "<executable-statement-list>", "STOP", "\n"]:
             ast.value = "ELSE"
             ast.children = ast.children[4].children
         elif rule == ["<assignment>", "->", "ID", "=", "<assignment>"]:

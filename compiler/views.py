@@ -36,8 +36,8 @@ def index(request):
             semantic_errors = ErrorHandler.getInstance().semantics_errors
             errors.extend(semantic_errors)
             if len(semantic_errors) == 0:
-                runtime = Runtime(yacc.ast)
-                runtime.run()
+                runtime = Runtime()
+                runtime.run(yacc.ast)
 
     context = {
         'tokens': tokens,

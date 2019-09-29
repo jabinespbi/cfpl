@@ -18,7 +18,7 @@ class State3:
             token_indexes_found = [token_index, token_index + 1]
             Utils.add_symbol_to_symbol_table(token_indexes_found, lexical.lexemes)
             return token_indexes_found
-        elif curr_char == ' ':
+        elif curr_char == ' ' or curr_char == '\t':
             lexical.curr_state = lexical.state3
             lexical.curr_index += 1
             return None

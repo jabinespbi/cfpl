@@ -10,6 +10,7 @@ class ParseTree:
     Creates the parse tree using the slr1 parsing table"""
 
     # list of rhs that stops the panic mode (e.g. rules with '\n')
+    # TODO: visit this again because there has been many things added already
     _panic_mode_rhs_list = [
         "<cfpl>",
         "<declaration-list>",
@@ -37,7 +38,7 @@ class ParseTree:
                     ErrorHandler.getInstance().syntax_errors.append(msg)
                     print("A syntax error is found at index " + str(token_indexes[0]) + ", token " + symbol[
                         'token'] + ".")
-                    print("Information: curr_state", stack[-1], "on input '", symbol['grammar_symbol'], "'")
+                    print("Information: curr_state", stack[-1], "on input '", grammar_symbol, "'")
 
                     ParseTree.panic_mode(lexical, stack, symbol['token'])
                     token_indexes = lexical.next()
@@ -79,7 +80,7 @@ class ParseTree:
                 action = slr1[stack[-1]][grammar_symbol]
                 if action is None:
                     msg = "A syntax error is found near \"" + Utils.near(lexical.lexemes, len(lexical.lexemes) - 1) + \
-                          "\" at line " + str(Utils.line_number(lexical.lexemes, token_indexes[0]))
+                          "\" at line " + str(Utils.line_number(lexical.lexemes, token_indexes[1]))
                     ErrorHandler.getInstance().syntax_errors.append(msg)
                     print("A syntax error is found at index EoI")
                     return None

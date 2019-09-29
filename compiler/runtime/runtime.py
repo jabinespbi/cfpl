@@ -5,19 +5,46 @@ from compiler.utils import Utils
 
 class Runtime:
 
-    def __init__(self, ast):
-        self.ast = ast
+    def __init__(self):
         self.runtime_list = RuntimeList()
 
-    def run(self):
-        ast = self.ast.copy()
+    def run(self, original_ast):
+        rules_for_suspension = ['IF', 'IF-ELSE', 'WHILE']
+        # if, if-else, and while nodes evaluation is suspended, and let the rules decide which nodes to visit
+        ast = original_ast.copy()
 
         done = []  # already push to stack
         stack = [ast]
         while len(stack) is not 0:
             top = stack[-1]
+
             if len(top.children) > 0:
-                if top not in done:
+                if top.value in rules_for_suspension:
+                    self.execute(stack.pop())
+                elif top not in done:
+                    for x in range(len(top.children) - 1, -1, -1):
+                        stack.append(top.children[x])
+                        done.append(top)
+                else:
+                    self.execute(stack.pop())
+            else:
+                stack.pop()
+
+        return ast
+
+    def run_with_side_effects(self, ast):
+        rules_for_suspension = ['IF', 'IF-ELSE', 'WHILE']
+        # if, if-else, and while nodes evaluation is suspended, and let the rules decide which nodes to visit
+
+        done = []  # already push to stack
+        stack = [ast]
+        while len(stack) is not 0:
+            top = stack[-1]
+
+            if len(top.children) > 0:
+                if top.value in rules_for_suspension:
+                    self.execute(stack.pop())
+                elif top not in done:
                     for x in range(len(top.children) - 1, -1, -1):
                         stack.append(top.children[x])
                         done.append(top)
@@ -53,6 +80,39 @@ class Runtime:
             # TODO: check if the input is of correct type, if not throw an exception
             # TODO: check multiple variable declaration during syntax analysis
             # TODO: int and float mathematical operation with its storage capacity
+        elif tree.value == "IF":
+            condition = tree.children[0]
+            value = self.get_python_value(condition.value)
+            if value == True:
+                self.run(tree.children[1])
+            elif value == False:
+                pass
+            else:
+                raise Exception("Expected to be a boolean value " + value + " !")
+        elif tree.value == "IF-ELSE":
+            condition = tree.children[0]
+            value = self.get_python_value(condition.value)
+            if value == True:
+                self.run(tree.children[1])
+            elif value == False:                self.run(tree.children[2])
+            else:
+                raise Exception("Expected to be a boolean value " + value + " !")
+        elif tree.value == "WHILE":
+            condition = tree.children[0]
+            while True:
+                condition_copy = condition.copy()
+                self.run_with_side_effects(condition_copy)
+                value = self.get_python_value(condition_copy.value)
+                if value == True:
+                    self.run(tree.children[1])
+                elif value == False:
+                    break
+                else:
+                    raise Exception("Expected to be a boolean value " + value + " !")
+        elif tree.value == "ASSIGN":
+            pass
+        elif tree.value == "DO" or tree.value == "ELSE":
+            pass
         elif tree.value == "=":
             operand1 = tree.children[0].value
             operand2 = tree.children[1].value
@@ -84,7 +144,7 @@ class Runtime:
                 "type": "BOOL",
                 "value": value1 or value2
             }
-            tree.clear()
+            tree.children.clear()
         elif tree.value == "AND":
             operand1 = tree.children[0].value
             operand2 = tree.children[1].value
@@ -97,7 +157,7 @@ class Runtime:
                 "type": "BOOL",
                 "value": value1 and value2
             }
-            tree.clear()
+            tree.children.clear()
         elif tree.value == "==":
             operand1 = tree.children[0].value
             operand2 = tree.children[1].value
@@ -110,7 +170,7 @@ class Runtime:
                 "type": "BOOL",
                 "value": value1 == value2
             }
-            tree.clear()
+            tree.children.clear()
         elif tree.value == "<>":
             operand1 = tree.children[0].value
             operand2 = tree.children[1].value
@@ -123,7 +183,7 @@ class Runtime:
                 "type": "BOOL",
                 "value": value1 != value2
             }
-            tree.clear()
+            tree.children.clear()
         elif tree.value == ">":
             operand1 = tree.children[0].value
             operand2 = tree.children[1].value
@@ -136,7 +196,7 @@ class Runtime:
                 "type": "BOOL",
                 "value": value1 > value2
             }
-            tree.clear()
+            tree.children.clear()
         elif tree.value == "<":
             operand1 = tree.children[0].value
             operand2 = tree.children[1].value
@@ -149,7 +209,7 @@ class Runtime:
                 "type": "BOOL",
                 "value": value1 < value2
             }
-            tree.clear()
+            tree.children.clear()
         elif tree.value == ">=":
             operand1 = tree.children[0].value
             operand2 = tree.children[1].value
@@ -162,7 +222,7 @@ class Runtime:
                 "type": "BOOL",
                 "value": value1 >= value2
             }
-            tree.clear()
+            tree.children.clear()
         elif tree.value == "<=":
             operand1 = tree.children[0].value
             operand2 = tree.children[1].value
@@ -175,7 +235,7 @@ class Runtime:
                 "type": "BOOL",
                 "value": value1 <= value2
             }
-            tree.clear()
+            tree.children.clear()
         elif tree.value == "&":
             operand1 = tree.children[0].value
             operand2 = tree.children[1].value
@@ -276,7 +336,7 @@ class Runtime:
                 "type": "INT",
                 "value": +value1
             }
-            tree.clear()
+            tree.children.clear()
         elif tree.value == "NOT":
             operand1 = tree.children[0].value
             value1 = self.get_python_value(operand1)

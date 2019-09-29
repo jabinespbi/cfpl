@@ -54,7 +54,7 @@ class Grammar:
 
             ["<if>", "->", "IF", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP", "\n"],
             ["<if>", "->", "IF", "(", "<or-expression>", ")", "\n", "START", "\n", "<executable-statement-list>", "STOP", "\n", "<else>"],
-            ["<else>", "->", "ELSE", "\n", "START", "\n", "<executable-statement-list>", "STOP"],
+            ["<else>", "->", "ELSE", "\n", "START", "\n", "<executable-statement-list>", "STOP", "\n"],
 
             ["<assignment>", "->", "ID", "=", "<assignment>"],
             ["<assignment>", "->", "<or-expression>"],
