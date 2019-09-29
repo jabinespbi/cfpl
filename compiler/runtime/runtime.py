@@ -82,6 +82,7 @@ class Runtime:
             # TODO: int and float mathematical operation with its storage capacity
         elif tree.value == "IF":
             condition = tree.children[0]
+            self.run_with_side_effects(condition)
             value = self.get_python_value(condition.value)
             if value == True:
                 self.run(tree.children[1])
@@ -91,6 +92,7 @@ class Runtime:
                 raise Exception("Expected to be a boolean value " + value + " !")
         elif tree.value == "IF-ELSE":
             condition = tree.children[0]
+            self.run_with_side_effects(condition)
             value = self.get_python_value(condition.value)
             if value == True:
                 self.run(tree.children[1])
