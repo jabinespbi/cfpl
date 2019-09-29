@@ -1,10 +1,22 @@
 <form action="/" method="post">
     {% csrf_token %}
     <div>
+        CFPL - CIT's First Programming Language
+        <br/>
+        <br/>
+        Input: <input name="input" type="text" value="{{ request.POST.input }}" size="50"/> <br/>
         Source Code:
         <p>
             <textarea name="source_code" style="resize: none;" cols="70"
-                      rows="25">{{request.POST.source_code}}</textarea>
+                      rows="25">{% if request.POST.source_code %}
+{{request.POST.source_code}}
+{% else %}*Declaration goes here
+
+START
+    * Code goes here
+    OUTPUT: "Hello World!"
+STOP
+{% endif %}</textarea>
             <textarea contenteditable="false" name="tokens" style="resize: none;" cols="70"
                       rows="25">
 Tokens:
@@ -19,7 +31,7 @@ Output:
             </textarea>
         </p>
         <p>
-            <button type="submit">Compile</button>
+            <button type="submit">Compile and Run</button>
         </p>
         <p>
             {{ error }}

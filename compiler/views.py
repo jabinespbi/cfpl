@@ -1,7 +1,10 @@
+import re
+
 from django.shortcuts import render
 
 from compiler.error_handler.error_handler import ErrorHandler
 from compiler.lexical.lexical import Lexical
+from compiler.runtime.input_stream import InputStream
 from compiler.runtime.output_stream import OutputStream
 from compiler.runtime.runtime import Runtime
 from compiler.semantics.grammar import Grammar
@@ -9,6 +12,7 @@ from compiler.semantics.yacc import Yacc
 
 
 def index(request):
+
     tokens = None
     errors = []
 
@@ -16,7 +20,9 @@ def index(request):
     ErrorHandler.getInstance().syntax_errors = []
     ErrorHandler.getInstance().semantics_errors = []
     OutputStream.output_stream = ""
-    if request.POST:
+    InputStream.intput_stream = []
+    if request.POST and request.POST['source_code'] != '':
+        InputStream.intput_stream = re.compile(r" +").split(request.POST['input'].strip())
         source_code = request.POST['source_code']
         lexemes = source_code.replace("\r\n", "\n")
         lexical = Lexical(lexemes)

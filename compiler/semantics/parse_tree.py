@@ -22,6 +22,7 @@ class ParseTree:
     @staticmethod
     def create_parse_tree(lexical, slr1):
         stack = ["EoS", 0]
+        token_indexes = None
         try:
             token_indexes = lexical.next()
             while True:
@@ -79,11 +80,15 @@ class ParseTree:
             while True:
                 action = slr1[stack[-1]][grammar_symbol]
                 if action is None:
-                    msg = "A syntax error is found near \"" + Utils.near(lexical.lexemes, len(lexical.lexemes) - 1) + \
-                          "\" at line " + str(Utils.line_number(lexical.lexemes, token_indexes[1]))
-                    ErrorHandler.getInstance().syntax_errors.append(msg)
-                    print("A syntax error is found at index EoI")
-                    return None
+                    if token_indexes is None:
+                        ErrorHandler.getInstance().syntax_errors.append("No parse tree created! Empty source code!")
+                        return None
+                    else:
+                        msg = "A syntax error is found near \"" + Utils.near(lexical.lexemes, len(lexical.lexemes) - 1) + \
+                              "\" at line " + str(Utils.line_number(lexical.lexemes, token_indexes[1]))
+                        ErrorHandler.getInstance().syntax_errors.append(msg)
+                        print("A syntax error is found at index EoI")
+                        return None
 
                 if action.type is ActionType.ACCEPT:
                     parse_tree = stack[-2]
