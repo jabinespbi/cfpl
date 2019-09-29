@@ -1,28 +1,13 @@
 import re
 
 from compiler.error_handler.error_handler import ErrorHandler
+from compiler.lexical.valid_token_fsm import ValidTokenFSM
 from compiler.utils import Utils
 
 
-#TODO: 'asdfasdf' should be a validt character
-#TODO string "asdfasdfasdf["]" should be considered as valid and one string
+# TODO: 'asdfasdf' should be a valid character
+# TODO string "asdfasdfasdf["]" should be considered as valid and one string
 class ValidToken:
-    token_regex = r'\A(' \
-                  r'[\(\)*/%+\-><=&,]|' \
-                  r'>=|<=|==|<>|' \
-                  r'INT|CHAR|BOOL|FLOAT|AND|OR|NOT|' \
-                  r'START|STOP|VAR|AS|OUTPUT:|INPUT:|IF|WHILE|ELSE|' \
-                  r'[$_a-zA-Z][$_a-zA-Z0-9]*|' \
-                  r'\"((TRUE)|(FALSE))\"|' \
-                  r'[0-9]+|' \
-                  r'[0-9]*\.[0-9]+|' \
-                  r'\".*\"|' \
-                  r'\'.\'' \
-                  r') ?\Z'
-
-    first_char_valid = r'\A(' \
-                       r'[\(\)*/%+\-><=&,A-Za-z$_\"\'0-9.]|' \
-                       r')\Z'
 
     def check(self, lexemes, curr_ptr):
         """ lexemes should start a character of the token
@@ -40,7 +25,7 @@ class ValidToken:
                 end = end + 1
                 continue
 
-            if re.match(self.first_char_valid, first_character_of_token) is None:
+            if ValidTokenFSM.is_char_valid(first_character_of_token) is False:
                 msg = "Illegal character: " + first_character_of_token + " near " + Utils.near(lexemes, lex_ptr)
                 ErrorHandler.getInstance().lex_errors.append(msg)
                 lex_ptr = end
@@ -53,13 +38,13 @@ class ValidToken:
         while end <= len(lexemes):
 
             possible_token = lexemes[lex_ptr:end]
-            matchObj = re.match(self.token_regex, possible_token)
+            matchObj = ValidTokenFSM.is_token(possible_token)
 
             if matchObj:
                 token_indexes_found = [lex_ptr, end]
                 # try matching the next token (longest rule matching)
                 possible_longer_token = lexemes[lex_ptr:end + 1]
-                matchObj = re.match(self.token_regex, possible_longer_token)
+                matchObj = ValidTokenFSM.is_token(possible_longer_token)
 
                 if matchObj is None:
                     if possible_token[len(possible_token) - 1] == " ":

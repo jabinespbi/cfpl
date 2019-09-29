@@ -1,6 +1,7 @@
 import re
 from queue import Queue
 
+from compiler.lexical.valid_token_fsm import ValidTokenFSM
 from compiler.symbols.symbol_table import SymbolTable
 from compiler.unexpected_error import UnexpectedError
 
@@ -222,27 +223,19 @@ class Utils:
 
     @staticmethod
     def get_grammar_symbol(token):
-        reserved_keywords = r'\AINT|CHAR|BOOL|FLOAT|AND|OR|NOT|START|STOP|VAR|AS|OUTPUT:|INPUT:|IF|ELSE|WHILE\Z'
-        id_regex = r'\A[$_a-zA-Z][$_a-zA-Z0-9]*\Z'
-        bool_lit = r'\A\"((TRUE)|(FALSE))\"\Z'
-        int_lit = r'\A[0-9]+\Z'
-        float_lit = r'\A[0-9]*\.[0-9]+\Z'
-        string_lit = r'\A\".*\"\Z'
-        char_lit = r'\A\'.\'\Z'
-
-        if Utils.is_string_match_regex(token, reserved_keywords):
+        if ValidTokenFSM.is_reserved(token):
             return None
-        elif Utils.is_string_match_regex(token, id_regex):
+        elif ValidTokenFSM.is_id(token):
             return "ID"
-        elif Utils.is_string_match_regex(token, bool_lit):
+        elif ValidTokenFSM.is_bool(token):
             return "BLIT"
-        elif Utils.is_string_match_regex(token, int_lit):
+        elif ValidTokenFSM.is_int(token):
             return "ILIT"
-        elif Utils.is_string_match_regex(token, float_lit):
+        elif ValidTokenFSM.is_float(token):
             return "FLIT"
-        elif Utils.is_string_match_regex(token, string_lit):
+        elif ValidTokenFSM.is_string(token):
             return "SLIT"
-        elif Utils.is_string_match_regex(token, char_lit):
+        elif ValidTokenFSM.is_char(token):
             return "CLIT"
         else:
             return None
