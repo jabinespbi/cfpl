@@ -38,15 +38,13 @@ class ValidToken:
         while end <= len(lexemes):
 
             possible_token = lexemes[lex_ptr:end]
-            matchObj = ValidTokenFSM.is_token(possible_token)
 
-            if matchObj:
+            if ValidTokenFSM.is_token(possible_token):
                 token_indexes_found = [lex_ptr, end]
                 # try matching the next token (longest rule matching)
                 possible_longer_token = lexemes[lex_ptr:end + 1]
-                matchObj = ValidTokenFSM.is_token(possible_longer_token)
 
-                if matchObj is None:
+                if ValidTokenFSM.is_token(possible_longer_token) is False:
                     if possible_token[len(possible_token) - 1] == " ":
                         token_indexes_found[1] = token_indexes_found[1] - 1
                     Utils.add_symbol_to_symbol_table(token_indexes_found, lexemes)

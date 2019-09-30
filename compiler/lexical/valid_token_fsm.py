@@ -12,7 +12,7 @@ class ValidTokenFSM:
 
     @staticmethod
     def is_char_valid(char):
-        valid_char = '()*/%+-><=&,A-Za-z$_"\'0-9.]'
+        valid_char = '()*/%+-><=&,ABCDEFGHIJKLMNOPQRSTUVWXYZZabcdefghijklmnopqrstuvwxyz$_"\'0123456789.]'
         return char in valid_char
 
     @staticmethod
@@ -45,8 +45,8 @@ class ValidTokenFSM:
         if possible_token[0] not in first_char:
             return False
 
-        for c in range(1, len(possible_token)):
-            if c not in following_char:
+        for i in range(1, len(possible_token)):
+            if possible_token[i] not in following_char:
                 return False
 
         return True
@@ -87,8 +87,8 @@ class ValidTokenFSM:
             return False
 
         char_num += 1
-        for c in range(char_num, len(possible_token)):
-            if c not in valid_char:
+        for i in range(char_num, len(possible_token)):
+            if possible_token[i] not in valid_char:
                 return False
 
         return True
