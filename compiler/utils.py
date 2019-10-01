@@ -16,8 +16,9 @@ class Utils:
             if index + 1 < len(rule):
                 symbol = rule[index + 1]
 
-                # if the symbol is a non terminal
-                if re.compile(r'\A<.*>\Z').match(symbol):
+                if symbol == '<>':
+                    pass  # ignore <> because this is a not equal operator
+                elif re.compile(r'\A<.*>\Z').match(symbol): # if the symbol is a non terminal
                     return symbol
         except ValueError:
             print("No '.' in the rule. Hmmm...")
@@ -165,7 +166,9 @@ class Utils:
             rules = Utils.get_rules_by_lhs(nonterminal, grammar)
             for rule in rules:
                 for x in range(2, len(rule)):  # right hand side begins after '->'
-                    if re.compile(r'\A<.*>\Z').match(rule[x]):
+                    if rule[x] == '<>':
+                        pass  # ignore <> because this is a not equal operator
+                    elif re.compile(r'\A<.*>\Z').match(rule[x]):
                         if rule[x] not in done:
                             queue.put(rule[x])
                             done.append(rule[x])
@@ -205,6 +208,8 @@ class Utils:
 
     @staticmethod
     def is_nonterminal(symbol):
+        if symbol == '<>':
+            return False
         return re.compile(r'\A<.*>\Z').match(symbol)
 
     @staticmethod
@@ -244,6 +249,10 @@ class Utils:
     def add_symbol_to_symbol_table(token_indexes_found, lexemes):
         symbol = lexemes[token_indexes_found[0]: token_indexes_found[1]]
         grammar_symbol = Utils.get_grammar_symbol(symbol)
+        if Utils.is_string_match_regex(symbol, r'\A\"\[.*\]"\Z'):
+            symbol = Utils.is_string_match_regex(symbol, r'\A\"\[(.*)\]"\Z').group(1)
+        elif symbol == '"#"':
+            symbol = '\n'
         SymbolTable.getInstance().unknown_tokens[token_indexes_found[0]] = {
             "uid": token_indexes_found[0],
             "token": symbol,

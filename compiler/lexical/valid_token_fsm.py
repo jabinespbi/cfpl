@@ -53,8 +53,8 @@ class ValidTokenFSM:
 
     @staticmethod
     def is_bool(possible_token):
-        if possible_token == "TRUE" or \
-                possible_token == "FALSE":
+        if possible_token == '"TRUE"' or \
+                possible_token == '"FALSE"':
             return True
 
         return False

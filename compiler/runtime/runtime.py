@@ -419,9 +419,4 @@ class Runtime:
             value = value.replace('"', "")
             value = value.replace('\'', "")
 
-            if Utils.is_string_match_regex(value, r'\A\[.*\]\Z'):
-                value = value[1: len(value) - 1]
-            elif value == '#':
-                value = '\n'
-
         return value
