@@ -79,7 +79,7 @@ class Semantics:
             else:
                 raise Exception("Syntax analysis should have produce a syntax error to avoid this in semantics!")
         elif tree.value == "=":
-            # TODO : check again incompatible types at the execution
+            # TODO : check again incompatible types at the execution (comment: why?)
             grammar_symbol = tree.children[1].value['grammar_symbol']
             if Utils.is_id(tree.children[1].value):
                 if Utils.is_declared(tree.children[1].value) is False:

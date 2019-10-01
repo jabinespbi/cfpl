@@ -18,7 +18,7 @@ class Utils:
 
                 if symbol == '<>':
                     pass  # ignore <> because this is a not equal operator
-                elif re.compile(r'\A<.*>\Z').match(symbol): # if the symbol is a non terminal
+                elif re.compile(r'\A<.*>\Z').match(symbol):  # if the symbol is a non terminal
                     return symbol
         except ValueError:
             print("No '.' in the rule. Hmmm...")
@@ -167,7 +167,7 @@ class Utils:
             for rule in rules:
                 for x in range(2, len(rule)):  # right hand side begins after '->'
                     if rule[x] == '<>':
-                        pass  # ignore <> because this is a not equal operator
+                        firsts_of_nonterminal.append(rule[x])  # a 'not equal' operator
                     elif re.compile(r'\A<.*>\Z').match(rule[x]):
                         if rule[x] not in done:
                             queue.put(rule[x])
