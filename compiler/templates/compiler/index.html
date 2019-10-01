@@ -16,8 +16,8 @@ START
 
     	OUTPUT: "Hello World!"
 STOP{% endif %}</textarea>
-            <textarea contenteditable="false" name="tokens" style="resize: none;" cols="70"
-                      rows="25">
+            <textarea name="tokens" style="resize: none;" cols="70"
+                      rows="25" readonly>
 Tokens:
 {% for token in tokens %}{{ token }}{{ "|" }}{% endfor %}
 
