@@ -9,15 +9,13 @@
         <p>
             <textarea name="source_code" style="resize: none;" cols="70"
                       rows="25">{% if request.POST.source_code %}
-{{request.POST.source_code}}
-{% else %}*Declaration goes here
+{{request.POST.source_code}}{% else %}*Declaration goes here
 
 START
     	* Execution statements goes here
 
     	OUTPUT: "Hello World!"
-STOP
-{% endif %}</textarea>
+STOP{% endif %}</textarea>
             <textarea contenteditable="false" name="tokens" style="resize: none;" cols="70"
                       rows="25">
 Tokens:
@@ -28,8 +26,7 @@ Tokens:
 {% endfor %}
 
 Output:
-{{ output }}
-            </textarea>
+{{ output }}</textarea>
         </p>
         <p>
             <button type="submit">Compile and Run</button>
