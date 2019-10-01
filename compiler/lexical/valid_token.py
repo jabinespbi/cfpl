@@ -41,10 +41,13 @@ class ValidToken:
                 possible_longer_token = lexemes[lex_ptr:end + 1]
 
                 if ValidTokenFSM.is_token(possible_longer_token) is False:
-                    if possible_token[len(possible_token) - 1] == " ":
-                        token_indexes_found[1] = token_indexes_found[1] - 1
-                    Utils.add_symbol_to_symbol_table(token_indexes_found, lexemes)
-                    return token_indexes_found
+                    # float needs to be looked forward + 2
+                    if ValidTokenFSM.is_token(lexemes[lex_ptr:end + 2]) is False:
+                        if possible_token[len(possible_token) - 1] == " ":
+                            token_indexes_found[1] = token_indexes_found[1] - 1
+
+                        Utils.add_symbol_to_symbol_table(token_indexes_found, lexemes)
+                        return token_indexes_found
 
             end += 1
 

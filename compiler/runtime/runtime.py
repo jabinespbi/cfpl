@@ -382,7 +382,9 @@ class Runtime:
             elif operand['grammar_symbol'] == "ILIT":
                 return int(operand['token'])
             elif operand['grammar_symbol'] == "FLIT":
-                return int(operand['token'])
+                return float(operand['token'])
+                # TODO: create classes for each data_type, and all operations can only be done by calling functions
+                #  in that class to encapsulate the syncing of maximum storage it can hold
             elif operand['grammar_symbol'] == "BLIT":
                 if operand['token'] == '"FALSE"':
                     return False

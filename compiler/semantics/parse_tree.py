@@ -10,7 +10,6 @@ class ParseTree:
     Creates the parse tree using the slr1 parsing table"""
 
     # list of rhs that stops the panic mode (e.g. rules with '\n')
-    # TODO: visit this again because there has been many things added already
     _panic_mode_rhs_list = [
         "<cfpl>",
         "<declaration-list>",

@@ -63,12 +63,12 @@ class Semantics:
             if len(error_msgs) > 0:
                 if Utils.is_id(condition.value):
                     if Utils.is_declared(condition.value):
-                        ErrorHandler.getInstance().semantics_errors.extend(error_msgs)
+                        ErrorHandler.getInstance().semantics_errors.append(error_msgs)
                     else:
                         error_msg = "Cannot resolve symbol " + condition.value['token'] + "!"
                         ErrorHandler.getInstance().semantics_errors.append(error_msg)
                 else:
-                    ErrorHandler.getInstance().semantics_errors.extend(error_msgs)
+                    ErrorHandler.getInstance().semantics_errors.append(error_msgs)
         elif tree.value == "DO" or tree.value == "ELSE":
             pass
         elif tree.value == "ASSIGN":
@@ -79,7 +79,6 @@ class Semantics:
             else:
                 raise Exception("Syntax analysis should have produce a syntax error to avoid this in semantics!")
         elif tree.value == "=":
-            # TODO : check again incompatible types at the execution (comment: why?)
             grammar_symbol = tree.children[1].value['grammar_symbol']
             if Utils.is_id(tree.children[1].value):
                 if Utils.is_declared(tree.children[1].value) is False:
@@ -125,10 +124,12 @@ class Semantics:
         elif tree.value == "UNARY-MINUS" or \
                 tree.value == "UNARY-PLUS":
             operand1 = tree.children[0]
-            error_msgs = Semantics.check_type_operand(operand1, "INT")
+            error_msgs_int = Semantics.check_type_operand(operand1, "INT")
+            error_msgs_float = Semantics.check_type_operand(operand1, "FLOAT")
 
-            if len(error_msgs) > 0:
-                ErrorHandler.getInstance().semantics_errors.extend(error_msgs)
+            if len(error_msgs_int) > 0 and len(error_msgs_float) > 0:
+                ErrorHandler.getInstance().semantics_errors.append(
+                    "Expected INT or FLOAT type for" + operand1.value['token'] + "!")
                 tree.value = {
                     "uid": None,
                     "token": None,
@@ -136,11 +137,19 @@ class Semantics:
                     "type": None,
                     "value": None
                 }
-            else:
+            elif len(error_msgs_int) == 0:
                 tree.value = {
                     "uid": None,
                     "token": None,
                     "grammar_symbol": "ILIT",
+                    "type": None,
+                    "value": None
+                }
+            elif len(error_msgs_float) == 0:
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "FLIT",
                     "type": None,
                     "value": None
                 }
@@ -149,7 +158,7 @@ class Semantics:
             error_msgs = Semantics.check_type_operand(operand1, "BOOL")
 
             if len(error_msgs) > 0:
-                ErrorHandler.getInstance().semantics_errors.extend(error_msgs)
+                ErrorHandler.getInstance().semantics_errors.append(error_msgs)
                 tree.value = {
                     "uid": None,
                     "token": None,
@@ -173,15 +182,29 @@ class Semantics:
     def process_semantic_math_expression(tree):
         operand1 = tree.children[0]
         operand2 = tree.children[1]
-        error_msgs = Semantics.check_type_operand(operand1, "INT")
-        error_msgs.extend(Semantics.check_type_operand(operand2, "INT"))
+        error_msgs_float1 = Semantics.check_type_operand(operand1, "FLOAT")
+        error_msgs_float2 = Semantics.check_type_operand(operand2, "FLOAT")
+        error_msgs1 = Semantics.check_type_operand(operand1, "INT")
+        error_msgs1.extend(Semantics.check_type_operand(operand1, "FLOAT"))
+        error_msgs2 = Semantics.check_type_operand(operand2, "INT")
+        error_msgs2.extend(Semantics.check_type_operand(operand2, "FLOAT"))
 
-        if len(error_msgs) > 0:
-            ErrorHandler.getInstance().semantics_errors.extend(error_msgs)
+        if len(error_msgs1) > 1 or len(error_msgs2) > 1:
+            error_msg = "Operator " + tree.value + " can only be applied to int and float types! "
+            ErrorHandler.getInstance().semantics_errors.append(error_msg)
             tree.value = {
                 "uid": None,
                 "token": None,
                 "grammar_symbol": "ERROR",
+                "type": None,
+                "value": None
+            }
+        elif len(error_msgs_float1) == 0 or \
+                len(error_msgs_float2) == 0:
+            tree.value = {
+                "uid": None,
+                "token": None,
+                "grammar_symbol": "FLIT",
                 "type": None,
                 "value": None
             }
@@ -202,7 +225,7 @@ class Semantics:
         error_msgs.extend(Semantics.check_type_operand(operand2, "BOOL"))
 
         if len(error_msgs) > 0:
-            ErrorHandler.getInstance().semantics_errors.extend(error_msgs)
+            ErrorHandler.getInstance().semantics_errors.append(error_msgs)
             tree.value = {
                 "uid": None,
                 "token": None,
@@ -228,9 +251,9 @@ class Semantics:
         error_msgs2 = Semantics.check_type_operand(operand2, "INT")
         error_msgs2.extend(Semantics.check_type_operand(operand2, "FLOAT"))
 
-        if len(error_msgs1) > 2 and len(error_msgs2) > 2:
+        if len(error_msgs1) > 1 or len(error_msgs2) > 1:
             error_msg = "Operator " + tree.value + " can only be applied to int and float types! "
-            ErrorHandler.getInstance().semantics_errors.extend(error_msg)
+            ErrorHandler.getInstance().semantics_errors.append(error_msg)
             tree.value = {
                 "uid": None,
                 "token": None,
