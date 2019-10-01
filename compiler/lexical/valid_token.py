@@ -1,12 +1,8 @@
-import re
-
 from compiler.error_handler.error_handler import ErrorHandler
 from compiler.lexical.valid_token_fsm import ValidTokenFSM
 from compiler.utils import Utils
 
 
-# TODO: 'asdfasdf' should be a valid character
-# TODO string "asdfasdfasdf["]" should be considered as valid and one string
 class ValidToken:
 
     def check(self, lexemes, curr_ptr):

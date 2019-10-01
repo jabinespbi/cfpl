@@ -1,0 +1,2 @@
+class CIndexOutOfBoundsException(Exception):
+    pass

@@ -1,0 +1,2 @@
+class CTypeCastException(Exception):
+    pass

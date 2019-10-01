@@ -1,5 +1,10 @@
+from compiler.c_index_out_of_bounds_exception import CIndexOutOfBoundsException
+from compiler.c_type_cast_exception import CTypeCastException
+from compiler.error_handler.error_handler import ErrorHandler
+from compiler.runtime.input_stream import InputStream
 from compiler.runtime.output_stream import OutputStream
 from compiler.runtime.runtime_list import RuntimeList
+from compiler.symbols.symbol_table import SymbolTable
 from compiler.utils import Utils
 
 
@@ -76,9 +81,22 @@ class Runtime:
         elif tree.value == "OUTPUT":
             OutputStream.output_stream += self.get_python_string_value(tree.children[0].value)
         elif tree.value == "INPUT":
-            pass
-            # TODO: check if the input is of correct type, if not throw an exception
-            # TODO: check multiple variable declaration during syntax analysis
+            for x in range(len(tree.children)):
+                child = tree.children[x]
+                if x >= len(InputStream.intput_stream):
+                    exception = 'CIndexOutOfBoundsException: Index out of bounds is found at input! ' + str(x)
+                    ErrorHandler.getInstance().runtime_exceptions.append(exception)
+                    raise CIndexOutOfBoundsException('Index out of bounds is found at input! ' + str(x))
+
+                input_token = InputStream.intput_stream[x]
+                if Utils.is_id_of_type(child.value, input_token['type']) is False:
+                    exception = 'CTypeCastException: Incompatible types between ' + child.value[
+                        'token'] + ' and input # ' + str(x)
+                    ErrorHandler.getInstance().runtime_exceptions.append(exception)
+                    raise CTypeCastException(
+                        'Incompatible types between ' + child.value['token'] + ' and input # ' + str(x))
+
+                SymbolTable.getInstance().symbol_table['a']['value'] = input_token['token']
             # TODO: int and float mathematical operation with its storage capacity
         elif tree.value == "IF":
             condition = tree.children[0]
@@ -96,7 +114,8 @@ class Runtime:
             value = self.get_python_value(condition.value)
             if value == True:
                 self.run(tree.children[1])
-            elif value == False:                self.run(tree.children[2])
+            elif value == False:
+                self.run(tree.children[2])
             else:
                 raise Exception("Expected to be a boolean value " + value + " !")
         elif tree.value == "WHILE":
@@ -246,7 +265,7 @@ class Runtime:
             tree.value = {
                 "uid": None,
                 "token": None,
-                "grammar_symbol":  None,
+                "grammar_symbol": None,
                 "type": "STRING",
                 "value": value1 + value2  # value only used for ids
             }

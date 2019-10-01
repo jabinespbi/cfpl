@@ -2,6 +2,8 @@ import re
 
 from django.shortcuts import render
 
+from compiler.c_index_out_of_bounds_exception import CIndexOutOfBoundsException
+from compiler.c_type_cast_exception import CTypeCastException
 from compiler.error_handler.error_handler import ErrorHandler
 from compiler.lexical.lexical import Lexical
 from compiler.runtime.input_stream import InputStream
@@ -16,18 +18,18 @@ def index(request):
     tokens = None
     errors = []
 
-    ErrorHandler.getInstance().lex_errors = []
-    ErrorHandler.getInstance().syntax_errors = []
-    ErrorHandler.getInstance().semantics_errors = []
+    ErrorHandler.getInstance().clear_error_storage()
     OutputStream.output_stream = ""
     InputStream.intput_stream = []
     if request.POST and request.POST['source_code'] != '':
-        InputStream.intput_stream = re.compile(r" +").split(request.POST['input'].strip())
+        inputs = request.POST['input'].split(',')
+        InputStream.transform_to_token_and_store_to_input_stream(inputs)
+        errors.extend(ErrorHandler.getInstance().warnings)
         source_code = request.POST['source_code']
         lexemes = source_code.replace("\r\n", "\n")
         lexical = Lexical(lexemes)
         tokens = lexical.get_all_tokens()
-        errors = ErrorHandler.getInstance().lex_errors
+        errors.extend(ErrorHandler.getInstance().lex_errors)
 
         yacc = Yacc(Grammar.get_grammar(), lexemes)
         yacc.create_parser()
@@ -43,7 +45,15 @@ def index(request):
             errors.extend(semantic_errors)
             if len(semantic_errors) == 0:
                 runtime = Runtime()
-                runtime.run(yacc.ast)
+                try:
+                    runtime.run(yacc.ast)
+                except CIndexOutOfBoundsException:
+                    pass
+                except CTypeCastException:
+                    pass
+
+                exceptions = ErrorHandler.getInstance().runtime_exceptions
+                errors.extend(exceptions)
 
     context = {
         'tokens': tokens,

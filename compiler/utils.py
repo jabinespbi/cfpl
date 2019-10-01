@@ -260,6 +260,7 @@ class Utils:
             return "INT"
         elif grammar_type == "FLIT":
             return "FLOAT"
+            return "FLOAT"
         elif grammar_type == "BLIT":
             return "BOOL"
         else:

@@ -257,7 +257,7 @@ class AbstractSyntaxTree:
             pass  # ignore
         elif rule == ["<id-list>", "->", "<id-list>", ",", "ID"]:
             id_list = ast.children[0].children
-            id_list.append(ast.children[1])
-            ast.children = [id_list]
+            id_list.append(ast.children[2])
+            ast.children = id_list
         else:
             raise Exception("Something went wrong during converting to AST! Found an unexpected production rule.")
