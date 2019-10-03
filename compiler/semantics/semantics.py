@@ -63,12 +63,12 @@ class Semantics:
             if len(error_msgs) > 0:
                 if Utils.is_id(condition.value):
                     if Utils.is_declared(condition.value):
-                        ErrorHandler.getInstance().semantics_errors.append(error_msgs)
+                        ErrorHandler.getInstance().semantics_errors.extend(error_msgs)
                     else:
                         error_msg = "Cannot resolve symbol " + condition.value['token'] + "!"
                         ErrorHandler.getInstance().semantics_errors.append(error_msg)
                 else:
-                    ErrorHandler.getInstance().semantics_errors.append(error_msgs)
+                    ErrorHandler.getInstance().semantics_errors.extend(error_msgs)
         elif tree.value == "DO" or tree.value == "ELSE":
             pass
         elif tree.value == "ASSIGN":
@@ -107,8 +107,9 @@ class Semantics:
                 tree.value == "AND":
             Semantics.process_semantic_boolean_expression(tree)
         elif tree.value == "==" or \
-                tree.value == "<>" or \
-                tree.value == ">" or \
+                tree.value == "<>":
+            Semantics.process_semantic_equality_expression(tree)
+        elif tree.value == ">" or \
                 tree.value == "<" or \
                 tree.value == ">=" or \
                 tree.value == "<=":
@@ -225,7 +226,7 @@ class Semantics:
         error_msgs.extend(Semantics.check_type_operand(operand2, "BOOL"))
 
         if len(error_msgs) > 0:
-            ErrorHandler.getInstance().semantics_errors.append(error_msgs)
+            ErrorHandler.getInstance().semantics_errors.extend(error_msgs)
             tree.value = {
                 "uid": None,
                 "token": None,
@@ -271,6 +272,56 @@ class Semantics:
             }
 
     @staticmethod
+    def process_semantic_equality_expression(tree):
+        operand1 = tree.children[0]
+        operand2 = tree.children[1]
+        is_id_error_msg1 = Semantics.check_if_id_and_is_declared(operand1)
+        is_id_error_msg2 = Semantics.check_if_id_and_is_declared(operand2)
+
+        if len(is_id_error_msg1) > 0 or len(is_id_error_msg2) > 0:
+            if len(is_id_error_msg1) > 0:
+                ErrorHandler.getInstance().semantics_errors.extend(is_id_error_msg1)
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "ERROR",
+                    "type": None,
+                    "value": None
+                }
+            if len(is_id_error_msg2) > 0:
+                ErrorHandler.getInstance().semantics_errors.extend(is_id_error_msg2)
+                tree.value = {
+                    "uid": None,
+                    "token": None,
+                    "grammar_symbol": "ERROR",
+                    "type": None,
+                    "value": None
+                }
+            return
+
+        data_type_1 = Semantics.get_type_operand(operand1)
+        error_msg = Semantics.check_type_operand(operand2, data_type_1)
+
+        if len(error_msg) > 0:
+            error_msg = "Operator " + tree.value + " can only be applied to same types!"
+            ErrorHandler.getInstance().semantics_errors.append(error_msg)
+            tree.value = {
+                "uid": None,
+                "token": None,
+                "grammar_symbol": "ERROR",
+                "type": None,
+                "value": None
+            }
+        else:
+            tree.value = {
+                "uid": None,
+                "token": None,
+                "grammar_symbol": "BLIT",
+                "type": None,
+                "value": None
+            }
+
+    @staticmethod
     def process_semantic_string_expression(tree):
         """Allow all types for string expression"""
         tree.value = {
@@ -294,3 +345,23 @@ class Semantics:
             error_messages.append("Expected " + data_type + " type for " + str(operand.value['token']) + "!")
 
         return error_messages
+
+    @staticmethod
+    def check_if_id_and_is_declared(operand):
+        """ignores with grammar symbol of ERROR"""
+        error_messages = []
+        if Utils.is_id(operand.value):
+            if Utils.is_declared(operand.value) is False:
+                error_messages.append("Cannot resolve symbol " + str(operand.value['token']) + "!")
+
+        return error_messages
+
+    @staticmethod
+    def get_type_operand(operand):
+        if Utils.is_id(operand.value):
+            if Utils.is_declared(operand.value) is True:
+                return Utils.get_id_type(operand.value)
+        elif Utils.is_literal(operand.value) is True:
+            return Utils.get_literal_type(operand.value)
+
+        return None

@@ -320,11 +320,31 @@ class Utils:
         return id_data_type == data_type
 
     @staticmethod
+    def get_id_type(operand):
+        """operand is either dict which is an ID or a literal.
+        data_type should be the grammar data type (e.g. INT, CHAR)"""
+        if type(operand) is not dict:
+            raise Exception("Argument should be a dictionary!")
+
+        id_data_type = SymbolTable.getInstance().symbol_table[operand['token']]['type']
+        if operand['grammar_symbol'] != "ID":
+            raise Exception("Argument should be an ID!")
+
+        return id_data_type
+
+    @staticmethod
     def is_literal_of_type(literal, data_type):
         if type(literal) is not dict:
             raise Exception("Argument should be a dictionary!")
 
         return literal['grammar_symbol'] == Utils.data_type_to_grammar_type(data_type)
+
+    @staticmethod
+    def get_literal_type(literal):
+        if type(literal) is not dict:
+            raise Exception("Argument should be a dictionary!")
+
+        return literal['grammar_symbol']
 
     @staticmethod
     def is_declared(variable):
