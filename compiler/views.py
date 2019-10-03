@@ -22,7 +22,9 @@ def index(request):
     OutputStream.output_stream = ""
     InputStream.intput_stream = []
     if request.POST and request.POST['source_code'] != '':
-        inputs = request.POST['input'].split(',')
+        inputs = []
+        if request.POST['input'] != '':
+            inputs = request.POST['input'].split(',')
         InputStream.transform_to_token_and_store_to_input_stream(inputs)
         errors.extend(ErrorHandler.getInstance().warnings)
         source_code = request.POST['source_code']
