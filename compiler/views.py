@@ -53,6 +53,8 @@ def index(request):
                     pass
                 except CTypeCastException:
                     pass
+                except ZeroDivisionError:
+                    pass
 
                 exceptions = ErrorHandler.getInstance().runtime_exceptions
                 errors.extend(exceptions)

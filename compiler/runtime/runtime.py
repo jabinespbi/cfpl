@@ -314,12 +314,17 @@ class Runtime:
             operand2 = tree.children[1].value
             value1 = self.get_python_value(operand1)
             value2 = self.get_python_value(operand2)
+
+            if value2 == 0:
+                ErrorHandler.getInstance().runtime_exceptions.append("ZeroDivisionError has occured!")
+                raise ZeroDivisionError()
+
             tree.value = {
                 "uid": None,
                 "token": None,
                 "grammar_symbol": None,
                 "type": "INT",
-                "value": value1 / value2  # TODO: throw exception if infinity
+                "value": value1 / value2
             }
             tree.children.clear()
         elif tree.value == "%":
