@@ -106,11 +106,11 @@ class ValidTokenFSM:
 
     @staticmethod
     def is_char(possible_token):
-        if len(possible_token) < 2:
+        if len(possible_token) != 3:
             return False
         if possible_token[0] != "'":
             return False
-        if possible_token[len(possible_token) - 1] != "'":
+        if possible_token[2] != "'":
             return False
 
         return True

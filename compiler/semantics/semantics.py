@@ -299,7 +299,7 @@ class Semantics:
                 }
             return
 
-        data_type_1 = Semantics.get_type_operand(operand1)
+        data_type_1 = Utils.grammar_type_to_data_type(Semantics.get_type_operand(operand1))
         error_msg = Semantics.check_type_operand(operand2, data_type_1)
 
         if len(error_msg) > 0:
