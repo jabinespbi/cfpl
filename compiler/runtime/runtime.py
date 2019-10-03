@@ -96,7 +96,7 @@ class Runtime:
                     raise CTypeCastException(
                         'Incompatible types between ' + child.value['token'] + ' and input # ' + str(x))
 
-                SymbolTable.getInstance().symbol_table['a']['value'] = input_token['token']
+                SymbolTable.getInstance().symbol_table[child.value['token']]['value'] = input_token['token']
             # TODO: int and float mathematical operation with its storage capacity
         elif tree.value == "IF":
             condition = tree.children[0]
